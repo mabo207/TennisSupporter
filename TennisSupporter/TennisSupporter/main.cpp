@@ -175,6 +175,10 @@ void DepthSimulate(bool objectcheck,Vector2D KinectSize)noexcept(false){
 }
 
 void BodySimulate(Vector2D KinectSize){
+	const int circlesize=3;
+	//フォント作成
+	//int font=CreateFontToHandle("メイリオ",circlesize*3/2,1,-1);
+
 	//kinectの初期化
 	//bodyについて
 	//sensor
@@ -246,19 +250,73 @@ void BodySimulate(Vector2D KinectSize){
 			}
 			//関節の取得
 			Joint joints[JointType::JointType_Count];
+			Vector2D jointsPos[JointType::JointType_Count];//関節の描画位置
 			pBody->GetJoints(JointType::JointType_Count,joints);
-			//各関節に対する処理
-			for(Joint joint:joints){
+			//各関節の位置の取得
+			for(int i=0;i<JointType::JointType_Count;i++){
 				try{
 					ICoordinateMapper *mapper;
 					ErrorCheck(pSensor->get_CoordinateMapper(&mapper),"mapper failed\n");
 					DepthSpacePoint point;//opencv系の座標。すなわちdxlibと同じ。
-					mapper->MapCameraPointToDepthSpace(joint.Position,&point);
-					DrawCircle(KinectSize.x-(int)point.X,(int)point.Y,5,GetColor(0,255,0),TRUE);//鏡像なので反転させて表示
+					mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
+					jointsPos[i]=Vector2D(KinectSize.x-(int)point.X,(int)point.Y);//鏡像なので反転して取得
 				} catch(const std::exception &e){
 					printfDx(e.what());
 				}
 			}
+			//各関節の描画
+			for(const Vector2D &v:jointsPos){
+				DrawCircle(v.x,v.y,circlesize,GetColor(0,255,0),FALSE);
+			}
+			//各ボーンの描画
+			//どこをどう繋げるかのデータ
+			std::vector<std::pair<_JointType,_JointType>> bonePairs={
+				std::make_pair<_JointType,_JointType>(JointType_Head,JointType_Neck),
+				std::make_pair<_JointType,_JointType>(JointType_Neck,JointType_SpineShoulder),
+				std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_ShoulderRight),
+				std::make_pair<_JointType,_JointType>(JointType_ShoulderRight,JointType_ElbowRight),
+				std::make_pair<_JointType,_JointType>(JointType_ElbowRight,JointType_WristRight),
+				std::make_pair<_JointType,_JointType>(JointType_WristRight,JointType_HandRight),
+				std::make_pair<_JointType,_JointType>(JointType_HandRight,JointType_HandTipRight),
+				std::make_pair<_JointType,_JointType>(JointType_HandRight,JointType_ThumbRight),
+				std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_ShoulderLeft),
+				std::make_pair<_JointType,_JointType>(JointType_ShoulderLeft,JointType_ElbowLeft),
+				std::make_pair<_JointType,_JointType>(JointType_ElbowLeft,JointType_WristLeft),
+				std::make_pair<_JointType,_JointType>(JointType_WristLeft,JointType_HandLeft),
+				std::make_pair<_JointType,_JointType>(JointType_HandLeft,JointType_HandTipLeft),
+				std::make_pair<_JointType,_JointType>(JointType_HandLeft,JointType_ThumbLeft),
+				std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_SpineMid),
+				std::make_pair<_JointType,_JointType>(JointType_SpineMid,JointType_SpineBase),
+				std::make_pair<_JointType,_JointType>(JointType_SpineBase,JointType_HipRight),
+				std::make_pair<_JointType,_JointType>(JointType_HipRight,JointType_KneeRight),
+				std::make_pair<_JointType,_JointType>(JointType_KneeRight,JointType_AnkleRight),
+				std::make_pair<_JointType,_JointType>(JointType_AnkleRight,JointType_FootRight),
+				std::make_pair<_JointType,_JointType>(JointType_SpineBase,JointType_HipLeft),
+				std::make_pair<_JointType,_JointType>(JointType_HipLeft,JointType_KneeLeft),
+				std::make_pair<_JointType,_JointType>(JointType_KneeLeft,JointType_AnkleLeft),
+				std::make_pair<_JointType,_JointType>(JointType_AnkleLeft,JointType_FootLeft)
+			};
+			//骨を表す直線の描画
+			for(const auto &pair:bonePairs){
+				Vector2D pos[2]={jointsPos[pair.first],jointsPos[pair.second]};
+				DrawLine(pos[0].x,pos[0].y,pos[1].x,pos[1].y,GetColor(255,255,255),1);
+			}
+/*
+			//各関節に対する処理
+			for(int i=0;i<JointType::JointType_Count;i++){
+				try{
+					ICoordinateMapper *mapper;
+					ErrorCheck(pSensor->get_CoordinateMapper(&mapper),"mapper failed\n");
+					DepthSpacePoint point;//opencv系の座標。すなわちdxlibと同じ。
+					mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
+					jointsPos[i]=Vector2D(KinectSize.x-(int)point.X,(int)point.Y);
+					DrawCircle(KinectSize.x-(int)point.X,(int)point.Y,circlesize,GetColor(0,255,0),FALSE);//鏡像なので反転させて表示
+					//DrawStringToHandle(KinectSize.x-(int)point.X-circlesize/2-1,(int)point.Y-circlesize/2-1,to_string_0d(joint.JointType,2).c_str(),GetColor(0,0,0),font);
+				} catch(const std::exception &e){
+					printfDx(e.what());
+				}
+			}
+//*/
 		}
 		
 		//情報更新
@@ -271,7 +329,6 @@ void BodySimulate(Vector2D KinectSize){
 			ErrorCheck(pDepthFrame->AccessUnderlyingBuffer(&bufferSize,&bufferMat),"access error\n");
 			printfDx("success\n");
 			//読み取りができたのでdrawMatを更新。鏡像なので左右反転させる。
-			const unsigned short *adress2=bufferMat;
 			if(bufferMat!=nullptr){
 				for(int y=0;y<KinectSize.y;y++){
 					for(int x=0;x<KinectSize.x;x++){
@@ -306,6 +363,8 @@ void BodySimulate(Vector2D KinectSize){
 
 	pSensor->Close();
 	pSensor->Release();
+
+	//DeleteFontToHandle(font);
 
 }
 
