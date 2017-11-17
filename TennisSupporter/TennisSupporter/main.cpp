@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include<cmath>
 #include<cassert>
 #include"DxLib.h"
 #include<Kinect.h>
@@ -219,6 +221,33 @@ void BodySimulate(Vector2D KinectSize){
 	for(int i=0;i<KinectSize.x*KinectSize.y;i++){
 		drawMat[i]=0;
 	}
+	//boneのどこをどう繋げるかのデータ
+	std::vector<std::pair<_JointType,_JointType>> bonePairs={
+		std::make_pair<_JointType,_JointType>(JointType_Head,JointType_Neck),
+		std::make_pair<_JointType,_JointType>(JointType_Neck,JointType_SpineShoulder),
+		std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_ShoulderRight),
+		std::make_pair<_JointType,_JointType>(JointType_ShoulderRight,JointType_ElbowRight),
+		std::make_pair<_JointType,_JointType>(JointType_ElbowRight,JointType_WristRight),
+		std::make_pair<_JointType,_JointType>(JointType_WristRight,JointType_HandRight),
+		std::make_pair<_JointType,_JointType>(JointType_HandRight,JointType_HandTipRight),
+		std::make_pair<_JointType,_JointType>(JointType_HandRight,JointType_ThumbRight),
+		std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_ShoulderLeft),
+		std::make_pair<_JointType,_JointType>(JointType_ShoulderLeft,JointType_ElbowLeft),
+		std::make_pair<_JointType,_JointType>(JointType_ElbowLeft,JointType_WristLeft),
+		std::make_pair<_JointType,_JointType>(JointType_WristLeft,JointType_HandLeft),
+		std::make_pair<_JointType,_JointType>(JointType_HandLeft,JointType_HandTipLeft),
+		std::make_pair<_JointType,_JointType>(JointType_HandLeft,JointType_ThumbLeft),
+		std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_SpineMid),
+		std::make_pair<_JointType,_JointType>(JointType_SpineMid,JointType_SpineBase),
+		std::make_pair<_JointType,_JointType>(JointType_SpineBase,JointType_HipRight),
+		std::make_pair<_JointType,_JointType>(JointType_HipRight,JointType_KneeRight),
+		std::make_pair<_JointType,_JointType>(JointType_KneeRight,JointType_AnkleRight),
+		std::make_pair<_JointType,_JointType>(JointType_AnkleRight,JointType_FootRight),
+		std::make_pair<_JointType,_JointType>(JointType_SpineBase,JointType_HipLeft),
+		std::make_pair<_JointType,_JointType>(JointType_HipLeft,JointType_KneeLeft),
+		std::make_pair<_JointType,_JointType>(JointType_KneeLeft,JointType_AnkleLeft),
+		std::make_pair<_JointType,_JointType>(JointType_AnkleLeft,JointType_FootLeft)
+	};
 
 
 	//アプリケーション動作
@@ -269,54 +298,49 @@ void BodySimulate(Vector2D KinectSize){
 				DrawCircle(v.x,v.y,circlesize,GetColor(0,255,0),FALSE);
 			}
 			//各ボーンの描画
-			//どこをどう繋げるかのデータ
-			std::vector<std::pair<_JointType,_JointType>> bonePairs={
-				std::make_pair<_JointType,_JointType>(JointType_Head,JointType_Neck),
-				std::make_pair<_JointType,_JointType>(JointType_Neck,JointType_SpineShoulder),
-				std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_ShoulderRight),
-				std::make_pair<_JointType,_JointType>(JointType_ShoulderRight,JointType_ElbowRight),
-				std::make_pair<_JointType,_JointType>(JointType_ElbowRight,JointType_WristRight),
-				std::make_pair<_JointType,_JointType>(JointType_WristRight,JointType_HandRight),
-				std::make_pair<_JointType,_JointType>(JointType_HandRight,JointType_HandTipRight),
-				std::make_pair<_JointType,_JointType>(JointType_HandRight,JointType_ThumbRight),
-				std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_ShoulderLeft),
-				std::make_pair<_JointType,_JointType>(JointType_ShoulderLeft,JointType_ElbowLeft),
-				std::make_pair<_JointType,_JointType>(JointType_ElbowLeft,JointType_WristLeft),
-				std::make_pair<_JointType,_JointType>(JointType_WristLeft,JointType_HandLeft),
-				std::make_pair<_JointType,_JointType>(JointType_HandLeft,JointType_HandTipLeft),
-				std::make_pair<_JointType,_JointType>(JointType_HandLeft,JointType_ThumbLeft),
-				std::make_pair<_JointType,_JointType>(JointType_SpineShoulder,JointType_SpineMid),
-				std::make_pair<_JointType,_JointType>(JointType_SpineMid,JointType_SpineBase),
-				std::make_pair<_JointType,_JointType>(JointType_SpineBase,JointType_HipRight),
-				std::make_pair<_JointType,_JointType>(JointType_HipRight,JointType_KneeRight),
-				std::make_pair<_JointType,_JointType>(JointType_KneeRight,JointType_AnkleRight),
-				std::make_pair<_JointType,_JointType>(JointType_AnkleRight,JointType_FootRight),
-				std::make_pair<_JointType,_JointType>(JointType_SpineBase,JointType_HipLeft),
-				std::make_pair<_JointType,_JointType>(JointType_HipLeft,JointType_KneeLeft),
-				std::make_pair<_JointType,_JointType>(JointType_KneeLeft,JointType_AnkleLeft),
-				std::make_pair<_JointType,_JointType>(JointType_AnkleLeft,JointType_FootLeft)
-			};
-			//骨を表す直線の描画
 			for(const auto &pair:bonePairs){
 				Vector2D pos[2]={jointsPos[pair.first],jointsPos[pair.second]};
-				DrawLine(pos[0].x,pos[0].y,pos[1].x,pos[1].y,GetColor(255,255,255),1);
+				DrawLine(pos[0].x,pos[0].y,pos[1].x,pos[1].y,GetColor(255,0,0),1);
 			}
-/*
-			//各関節に対する処理
-			for(int i=0;i<JointType::JointType_Count;i++){
-				try{
-					ICoordinateMapper *mapper;
-					ErrorCheck(pSensor->get_CoordinateMapper(&mapper),"mapper failed\n");
-					DepthSpacePoint point;//opencv系の座標。すなわちdxlibと同じ。
-					mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
-					jointsPos[i]=Vector2D(KinectSize.x-(int)point.X,(int)point.Y);
-					DrawCircle(KinectSize.x-(int)point.X,(int)point.Y,circlesize,GetColor(0,255,0),FALSE);//鏡像なので反転させて表示
-					//DrawStringToHandle(KinectSize.x-(int)point.X-circlesize/2-1,(int)point.Y-circlesize/2-1,to_string_0d(joint.JointType,2).c_str(),GetColor(0,0,0),font);
-				} catch(const std::exception &e){
-					printfDx(e.what());
+		}
+		//戦闘のbodyに対して、xy画像とzy画像を描画する
+		for(auto pBody:pBodies){
+			if(pBody!=nullptr){
+				//現実世界における、各bodyのkinectからの座標を取得する。mm単位のdepth画像ではなく、skeltonから取得しているので単位はm。
+				Joint joints[JointType::JointType_Count];
+				pBody->GetJoints(JointType::JointType_Count,joints);
+				//各関節点の描画位置を記録
+				Vector2D jointsXY[JointType::JointType_Count];
+				Vector2D jointsZY[JointType::JointType_Count];
+				for(int i=0;i<JointType::JointType_Count;i++){
+					const double hAngle=70.0,vAngle=60.0;
+					const float halfDepthRange=8.0/2;
+					//xy画像の中心は(KinectSize.x/2,KinectSize.y*3/2)に描画
+					float posz=joints[i].Position.Z;
+					if(posz==0.0){
+						posz=0.001;//本来は例外処理をするべき
+					} else{
+						int a=0;
+					}
+					jointsXY[i]=Vector2D((int)(KinectSize.x*joints[i].Position.X/joints[i].Position.Z/std::sin(hAngle/360*M_PI)),(int)(KinectSize.y*joints[i].Position.Y/joints[i].Position.Z/std::sin(vAngle/360*M_PI)));//通常の座標系における中心からの相対距離
+					jointsXY[i]=Vector2D(jointsXY[i].x,-jointsXY[i].y)+Vector2D(KinectSize.x/2,KinectSize.y*3/2);//DXライブラリの座標系に変換し、更に絶対位置に変換
+					//zy画像の中心は(KinectSize.x*3/2,KinectSize.y*3/2)に描画
+					jointsZY[i]=Vector2D((int)(KinectSize.x*(halfDepthRange/2-joints[i].Position.Z)/halfDepthRange),(int)(KinectSize.x*joints[i].Position.Y/halfDepthRange));//現実世界の座標系での中心からの相対距離
+					jointsZY[i]=Vector2D(jointsZY[i].x,-jointsZY[i].y)+KinectSize*3/2;//DXライブラリの座標系に変換し、更に絶対位置に変換
+				}
+				//各関節の描画
+				for(int i=0;i<JointType::JointType_Count;i++){
+					DrawCircle(jointsXY[i].x,jointsXY[i].y,circlesize,GetColor(0,255,0),FALSE);
+					DrawCircle(jointsZY[i].x,jointsZY[i].y,circlesize,GetColor(0,255,0),FALSE);
+				}
+				//各ボーンの描画
+				for(const auto &pair:bonePairs){
+					Vector2D posXY[2]={jointsXY[pair.first],jointsXY[pair.second]};
+					Vector2D posZY[2]={jointsZY[pair.first],jointsZY[pair.second]};
+					DrawLine(posXY[0].x,posXY[0].y,posXY[1].x,posXY[1].y,GetColor(255,0,0),1);
+					DrawLine(posZY[0].x,posZY[0].y,posZY[1].x,posZY[1].y,GetColor(255,0,0),1);
 				}
 			}
-//*/
 		}
 		
 		//情報更新
@@ -373,11 +397,11 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
 		const Vector2D KinectSize(512,424);
 		//dxライブラリの初期化
 		//画面モードの設定(一応こんな感じ)
-		SetGraphMode(KinectSize.x,KinectSize.y,16);
+		SetGraphMode(KinectSize.x*2,KinectSize.y*2,16);
 		//タイトルメニュー文字
 		SetMainWindowText("TennisSupporter");
 		//ウインドウサイズの変更
-		SetWindowSizeExtendRate(1.0);
+		SetWindowSizeExtendRate(0.5);
 		//ウインドウサイズの変更をできるようにする
 		SetWindowSizeChangeEnableFlag(FALSE);
 		//アイコンの設定
