@@ -7,16 +7,77 @@
 
 #include<set>
 #include<vector>
+#include<string>
+#include<fstream>
+#include<iostream>
 
 struct JointPosition{
 	static const float defaultfloat;
 	float X;
 	float Y;
 	float Z;
+	//X,Y,Zの値を直接入力する
 	JointPosition(float i_X=defaultfloat,float i_Y=defaultfloat,float i_Z=defaultfloat)
 		:X(i_X),Y(i_Y),Z(i_Z){}
+	//_CameraSpacePointより初期化する
 	JointPosition(_CameraSpacePoint pos)
 		:X(pos.X),Y(pos.Y),Z(pos.Z){}
+	//"(X,Y,Z)"という形式の文字列を読み取って初期化する
+	JointPosition(const std::string &str){
+		unsigned int size=str.size();
+		int process=0;//0:"("の読み取り 1:Xの読み取り 2:Yの読み取り 3:Zの読み取り
+		std::string parts="";
+		parts.reserve(15);
+		try{
+			for(unsigned int i=0;i<size;i++){
+				switch(process){
+				case(0):
+					if(str[i]=='('){
+						process++;
+						parts.clear();
+					}
+					break;
+				case(1):
+					if(str[i]==','){
+						process++;
+						X=std::stof(parts);
+						parts.clear();
+					} else{
+						parts.push_back(str[i]);
+					}
+					break;
+				case(2):
+					if(str[i]==','){
+						process++;
+						Y=std::stof(parts);
+						parts.clear();
+					} else{
+						parts.push_back(str[i]);
+					}
+					break;
+				case(3):
+					if(str[i]==')'){
+						process++;
+						Z=std::stof(parts);
+						parts.clear();
+					} else{
+						parts.push_back(str[i]);
+					}
+					break;
+				}
+			}
+		}catch(const std::exception &e){
+			//桁数が大きすぎた時の処理
+			JointPosition j=JointPosition();
+			X=j.X;
+			Y=j.Y;
+			Z=j.Z;
+		}
+	}
+	//"(X,Y,Z)"という文字列を出力する
+	std::string GetString()const{
+		return "("+std::to_string(X)+","+std::to_string(Y)+","+std::to_string(Z)+")";
+	}
 	//_CameraSpacePointを作成
 	_CameraSpacePoint GetCameraSpacePoint()const{
 		_CameraSpacePoint c;
@@ -292,6 +353,14 @@ void BodySimulate(Vector2D KinectSize){
 		std::make_pair<_JointType,_JointType>(JointType_AnkleLeft,JointType_FootLeft)
 	};
 
+	//取得したデータを記録する場所
+	bool fileWriteFlag=false;//ファイル入力をするかどうか
+	std::ofstream writeFile;
+	
+	//記録した物を再生する際に用いるデータ
+	bool playDataFlag=false;//再生するかどうか
+	std::ifstream readFile;
+
 
 	//アプリケーション動作
 	while(ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
@@ -452,8 +521,34 @@ void BodySimulate(Vector2D KinectSize){
 		} catch(const std::exception &e){
 			printfDx(e.what());
 		}
-		
-
+		//情報の記録をするかのフラグの更新
+		if(keyboard_get(KEY_INPUT_NUMPADENTER)==1){
+			fileWriteFlag=!fileWriteFlag;
+			if(fileWriteFlag){
+				//記録開始時はファイルを開く
+				writeFile.open("SaveData/"+to_string_0d(0,3)+".txt",std::ios_base::trunc);
+				if(!writeFile){
+					//ファイルを開けなければ記録開始しない
+					fileWriteFlag=false;
+				}
+			}else{
+				//記録終了時はファイルを閉じる
+				writeFile.close();
+			}
+		}
+		//ファイル出力
+		printfDx("fileWriteFlag:\n");
+		printfDx((fileWriteFlag && !(!writeFile)) ? "true\n":"false\n");
+		if(fileWriteFlag && !(!writeFile)){
+			//body位置の出力
+			//形式は1行につき、1フレームでのjointPositions[i][j]の各要素を(X,Y,Z)という形式にして出力。
+			for(int j=0;j<BodyNum;j++){
+				for(int i=0;i<JointType_Count;i++){
+					writeFile<<jointPositions[j][i].GetString();
+				}
+			}
+			writeFile<<std::endl;//1フレーム内の全ての出力が終了したので改行を出力
+		}
 
 		//終了検出
 		if(keyboard_get(KEY_INPUT_ESCAPE)>0){
@@ -466,6 +561,7 @@ void BodySimulate(Vector2D KinectSize){
 	pSensor->Close();
 	pSensor->Release();
 
+	writeFile.close();
 	//DeleteFontToHandle(font);
 
 }
