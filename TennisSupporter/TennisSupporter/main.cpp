@@ -298,7 +298,7 @@ void BodySimulate(Vector2D KinectSize){
 	
 	//毎フレーム更新するもの
 	//Body
-	const int BodyNum=6;
+	const size_t BodyNum=6;
 	IBodyFrame *pBodyFrame=nullptr;
 	IBody *pBodies[BodyNum];
 	for(size_t i=0;i<BodyNum;i++){
@@ -355,6 +355,8 @@ void BodySimulate(Vector2D KinectSize){
 
 	//取得したデータを記録する場所
 	bool fileWriteFlag=false;//ファイル入力をするかどうか
+	int writeCount=0;//書き込んでいる時間の計測
+	const int writeCountMax=20*60;//これ以上の時間書き込まないようにする
 	std::ofstream writeFile;
 	
 	//記録した物を再生する際に用いるデータ
@@ -370,16 +372,18 @@ void BodySimulate(Vector2D KinectSize){
 		
 		//描画
 		clsDx();
-		//depth画像描画
-		for(int y=0;y<KinectSize.y;y++){
-			for(int x=0;x<KinectSize.x;x++){
-				int color=drawMat[x+y*KinectSize.x];
-				int c=color*255/8000;//値を0~255の範囲内に収める。drawmat内にある数値は500～8000で、mm単位での物体までの距離である
-				DrawPixel(x,y,GetColor(c,c,c));
+		//depth画像描画(データ記録時のみ描画する)
+		if(!playDataFlag){
+			for(int y=0;y<KinectSize.y;y++){
+				for(int x=0;x<KinectSize.x;x++){
+					int color=drawMat[x+y*KinectSize.x];
+					int c=color*255/8000;//値を0~255の範囲内に収める。drawmat内にある数値は500～8000で、mm単位での物体までの距離である
+					DrawPixel(x,y,GetColor(c,c,c));
+				}
 			}
 		}
 		//複数あるbodyそれぞれに対して処理を行う
-		for(int j=0;j<BodyNum;j++){
+		for(size_t j=0;j<BodyNum;j++){
 			if(pBodies[j]==nullptr){
 				continue;
 			}
@@ -393,7 +397,7 @@ void BodySimulate(Vector2D KinectSize){
 			Vector2D jointsPos[JointType::JointType_Count];//関節のdepth画像描画位置
 			Vector2D jointsXY[JointType::JointType_Count];//関節のxy画像描画位置
 			Vector2D jointsZY[JointType::JointType_Count];//関節のzy画像描画位置
-			for(int i=0;i<JointType::JointType_Count;i++){
+			for(size_t i=0;i<JointType::JointType_Count;i++){
 				//depth画像に入れる関節の位置:jointsPos
 				try{
 					ICoordinateMapper *mapper;
@@ -421,7 +425,7 @@ void BodySimulate(Vector2D KinectSize){
 				jointsZY[i]=Vector2D(jointsZY[i].x,-jointsZY[i].y)+KinectSize*3/2;//DXライブラリの座標系に変換し、更に絶対位置に変換
 			}
 			//各関節の描画
-			for(int i=0;i<JointType::JointType_Count;i++){
+			for(size_t i=0;i<JointType::JointType_Count;i++){
 				DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,GetColor(0,255,0),FALSE);//depth画像
 				DrawCircle(jointsXY[i].x,jointsXY[i].y,circlesize,GetColor(0,255,0),FALSE);//xy画像
 				DrawCircle(jointsZY[i].x,jointsZY[i].y,circlesize,GetColor(0,255,0),FALSE);//zy座標
@@ -482,72 +486,142 @@ void BodySimulate(Vector2D KinectSize){
 //*/
 		
 		//情報更新
-		//depth
-		//データの読み取り
-		printfDx("depth:\n");
-		try{
-			IDepthFrame *pDepthFrame=nullptr;
-			ErrorCheck(pDepthReader->AcquireLatestFrame(&pDepthFrame),"acquire error\n");
-			ErrorCheck(pDepthFrame->AccessUnderlyingBuffer(&bufferSize,&bufferMat),"access error\n");
-			printfDx("success\n");
-			//読み取りができたのでdrawMatを更新。鏡像なので左右反転させる。
-			if(bufferMat!=nullptr){
-				for(int y=0;y<KinectSize.y;y++){
-					for(int x=0;x<KinectSize.x;x++){
-						drawMat[(KinectSize.x-x-1)+y*KinectSize.x]=bufferMat[x+y*KinectSize.x];
+		if(!playDataFlag){
+			//情報の記録を行えるモードの時
+			printfDx("RecordingDataMode\n");
+			//depth
+			//データの読み取り
+			printfDx("depth:\n");
+			try{
+				IDepthFrame *pDepthFrame=nullptr;
+				ErrorCheck(pDepthReader->AcquireLatestFrame(&pDepthFrame),"acquire error\n");
+				ErrorCheck(pDepthFrame->AccessUnderlyingBuffer(&bufferSize,&bufferMat),"access error\n");
+				printfDx("success\n");
+				//読み取りができたのでdrawMatを更新。鏡像なので左右反転させる。
+				if(bufferMat!=nullptr){
+					for(int y=0;y<KinectSize.y;y++){
+						for(int x=0;x<KinectSize.x;x++){
+							drawMat[(KinectSize.x-x-1)+y*KinectSize.x]=bufferMat[x+y*KinectSize.x];
+						}
 					}
 				}
+				pDepthFrame->Release();//bufferMatの参照が終了したのでpDepthFrameを開放する
+			} catch(const std::exception &e){
+				printfDx(e.what());
 			}
-			pDepthFrame->Release();//bufferMatの参照が終了したのでpDepthFrameを開放する
-		} catch(const std::exception &e){
-			printfDx(e.what());
-		}
-		//body
-		printfDx("body:\n");
-		try{
-			ErrorCheck(pBodyReader->AcquireLatestFrame(&pBodyFrame),"aquaire failed\n");//直近フレームのbodyデータの取得
-			ErrorCheck(pBodyFrame->GetAndRefreshBodyData(6,pBodies),"access failed\n");//bodyデータをpBodiesに格納
-			pBodyFrame->Release();//これ以降pBodyFrameは使わない
-			printfDx("success\n");
-			for(int j=0;j<BodyNum;j++){
-				//関節の実座標位置をjointPositionsに格納
-				Joint joints[JointType::JointType_Count];
-				pBodies[j]->GetJoints(JointType::JointType_Count,joints);//関節位置の実座標の取得
-				//jointPositionsに関節の実座標を格納
-				for(int i=0;i<JointType_Count;i++){
-					jointPositions[j][i]=JointPosition(joints[i].Position);
+			//body
+			printfDx("body:\n");
+			try{
+				ErrorCheck(pBodyReader->AcquireLatestFrame(&pBodyFrame),"aquaire failed\n");//直近フレームのbodyデータの取得
+				ErrorCheck(pBodyFrame->GetAndRefreshBodyData(6,pBodies),"access failed\n");//bodyデータをpBodiesに格納
+				pBodyFrame->Release();//これ以降pBodyFrameは使わない
+				printfDx("success\n");
+				for(int j=0;j<BodyNum;j++){
+					//関節の実座標位置をjointPositionsに格納
+					Joint joints[JointType::JointType_Count];
+					pBodies[j]->GetJoints(JointType::JointType_Count,joints);//関節位置の実座標の取得
+					//jointPositionsに関節の実座標を格納
+					for(int i=0;i<JointType_Count;i++){
+						jointPositions[j][i]=JointPosition(joints[i].Position);
+					}
+				}
+			} catch(const std::exception &e){
+				printfDx(e.what());
+			}
+			//情報の記録をするかのフラグの更新
+			if(keyboard_get(KEY_INPUT_NUMPADENTER)==1){
+				fileWriteFlag=!fileWriteFlag;
+				if(fileWriteFlag){
+					//記録開始時はファイルを開き、writeCountを0にする
+					writeCount=0;
+					writeFile.open("SaveData/"+to_string_0d(0,3)+".txt",std::ios_base::trunc);
+					if(!writeFile){
+						//ファイルを開けなければ記録開始しない
+						fileWriteFlag=false;
+					}
+				} else{
+					//記録終了時はファイルを閉じる
+					writeFile.close();
 				}
 			}
-		} catch(const std::exception &e){
-			printfDx(e.what());
-		}
-		//情報の記録をするかのフラグの更新
-		if(keyboard_get(KEY_INPUT_NUMPADENTER)==1){
-			fileWriteFlag=!fileWriteFlag;
-			if(fileWriteFlag){
-				//記録開始時はファイルを開く
-				writeFile.open("SaveData/"+to_string_0d(0,3)+".txt",std::ios_base::trunc);
-				if(!writeFile){
-					//ファイルを開けなければ記録開始しない
+			//ファイル出力
+			printfDx("fileWriteFlag:\n");
+			printfDx((fileWriteFlag && !(!writeFile)) ? "true\n":"false\n");
+			if(fileWriteFlag && !(!writeFile)){
+				//書き込みすぎ判定
+				writeCount++;
+				if(writeCount>writeCountMax){
 					fileWriteFlag=false;
 				}
-			}else{
-				//記録終了時はファイルを閉じる
-				writeFile.close();
+				//body位置の出力
+				//形式は1行につき、1フレームでのjointPositions[i][j]の各要素を(X,Y,Z)という形式にして出力。
+				for(int j=0;j<BodyNum;j++){
+					for(int i=0;i<JointType_Count;i++){
+						writeFile<<jointPositions[j][i].GetString();
+					}
+				}
+				writeFile<<std::endl;//1フレーム内の全ての出力が終了したので改行を出力
 			}
-		}
-		//ファイル出力
-		printfDx("fileWriteFlag:\n");
-		printfDx((fileWriteFlag && !(!writeFile)) ? "true\n":"false\n");
-		if(fileWriteFlag && !(!writeFile)){
-			//body位置の出力
-			//形式は1行につき、1フレームでのjointPositions[i][j]の各要素を(X,Y,Z)という形式にして出力。
-			for(int j=0;j<BodyNum;j++){
-				for(int i=0;i<JointType_Count;i++){
-					writeFile<<jointPositions[j][i].GetString();
+			//記録データ再生モードへの移行処理
+			if(keyboard_get(KEY_INPUT_0)==1){
+				readFile.open("SaveData/"+to_string_0d(0,3)+".txt");
+				if(!readFile){
+					//読み込み失敗時の処理
+				}else{
+					//読み込み成功時のみ、再生モードへ
+					playDataFlag=true;
 				}
 			}
-			writeFile<<std::endl;//1フレーム内の全ての出力が終了したので改行を出力
+		}else{
+			//記録したものの再生を行うモード
+			printfDx("PlayingDataMode\n");
+			if(!readFile){
+				continue;
+			}else{
+				//ファイルを1行読み込みながら、jointPositionsにデータを格納
+				size_t bodyindex=0,jointindex=0;
+				std::string parts="";
+				parts.reserve(50);
+				bool inBracketsFlag=false;//現在"(~~)"の中を読み取っているかどうか
+				char ch='a';//初期値はテキトー
+				while(true){
+					ch=readFile.get();
+					if(ch=='\n' || ch==EOF){
+						//1行読み終わるか、ファイルの末尾到達時
+						break;
+					}else{
+						if(inBracketsFlag){
+							//()内読み取り時(=')'を探している)
+							parts.push_back(ch);
+							if(ch==')'){
+								inBracketsFlag=!inBracketsFlag;
+								//jointPositionsに格納
+								if(bodyindex<BodyNum && jointindex<JointType_Count){
+									jointPositions[bodyindex][jointindex]=JointPosition(parts);
+									//index系の更新
+									jointindex++;
+									if(jointindex>=JointType_Count){
+										jointindex=0;
+										bodyindex++;
+									}
+								}
+								parts.clear();
+							}
+						}else{
+							//()外読み取り時(='('を探している)
+							if(ch=='('){
+								inBracketsFlag=!inBracketsFlag;
+								parts.push_back(ch);
+							}
+						}
+					}
+				}
+				//ファイル末尾に到達したら、再生モードは終了し記録モードに戻る
+				if(ch==EOF){
+					readFile.close();
+					playDataFlag=!playDataFlag;
+				}
+			}
 		}
 
 		//終了検出
@@ -562,6 +636,7 @@ void BodySimulate(Vector2D KinectSize){
 	pSensor->Release();
 
 	writeFile.close();
+	readFile.close();
 	//DeleteFontToHandle(font);
 
 }
