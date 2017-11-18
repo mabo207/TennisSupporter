@@ -11,6 +11,8 @@
 #include<fstream>
 #include<iostream>
 
+#include<time.h>
+
 struct JointPosition{
 	static const float defaultfloat;
 	float X;
@@ -356,14 +358,17 @@ void BodySimulate(Vector2D KinectSize){
 	//取得したデータを記録する場所
 	bool fileWriteFlag=false;//ファイル入力をするかどうか
 	int writeCount=0;//書き込んでいる時間の計測
-	const int writeCountMax=20*60;//これ以上の時間書き込まないようにする
+	const int writeCountMax=30*30;//これ以上の時間書き込まないようにする
 	std::ofstream writeFile;
 	
 	//記録した物を再生する際に用いるデータ
 	bool playDataFlag=false;//再生するかどうか
+	int playFlame=0;//今何フレーム目を再生しているか
 	std::ifstream readFile;
-
-
+	const int captureFps=30;//撮影データのfps
+	const int drawFps=60;//描画時のfps
+	double playRate=1.0;//再生速度
+	
 	//アプリケーション動作
 	while(ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
 		//ゲーム本体
@@ -570,13 +575,17 @@ void BodySimulate(Vector2D KinectSize){
 				}else{
 					//読み込み成功時のみ、再生モードへ
 					playDataFlag=true;
+					playFlame=0;
 				}
 			}
 		}else{
 			//記録したものの再生を行うモード
 			printfDx("PlayingDataMode\n");
-			if(!readFile){
-				continue;
+			int a=playFlame*captureFps*playRate/drawFps;
+			playFlame++;
+			int b=playFlame*captureFps*playRate/drawFps;//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
+			if(!readFile || a==b){
+				//特に何もしない
 			}else{
 				//ファイルを1行読み込みながら、jointPositionsにデータを格納
 				size_t bodyindex=0,jointindex=0;
@@ -623,6 +632,18 @@ void BodySimulate(Vector2D KinectSize){
 				}
 			}
 		}
+		//再生モードにおける再生速度調整
+		if(keyboard_get(KEY_INPUT_Z)>0){
+			//遅くする
+			playRate=std::fmax(0.1,playRate-0.05);
+		} else if(keyboard_get(KEY_INPUT_X)>0){
+			//1.0倍に戻す
+			playRate=1.0;
+		} else if(keyboard_get(KEY_INPUT_C)>0){
+			//速くする
+			playRate=playRate+0.05;
+		}
+		printfDx("playRate:\n%f",playRate);
 
 		//終了検出
 		if(keyboard_get(KEY_INPUT_ESCAPE)>0){
