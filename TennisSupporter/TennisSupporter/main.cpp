@@ -8,6 +8,45 @@
 #include<set>
 #include<vector>
 
+struct JointPosition{
+	static const float defaultfloat;
+	float X;
+	float Y;
+	float Z;
+	JointPosition(float i_X=defaultfloat,float i_Y=defaultfloat,float i_Z=defaultfloat)
+		:X(i_X),Y(i_Y),Z(i_Z){}
+	JointPosition(_CameraSpacePoint pos)
+		:X(pos.X),Y(pos.Y),Z(pos.Z){}
+	//_CameraSpacePointを作成
+	_CameraSpacePoint GetCameraSpacePoint()const{
+		_CameraSpacePoint c;
+		c.X=X;
+		c.Y=Y;
+		c.Z=Z;
+		return c;
+	}
+	//Joint::PositionがJointPositionのようになっているJointを返す。その他の要素はテキトー。
+	Joint CreateJoint()const{
+		return CreateJoint(JointType_SpineBase);
+	}
+	Joint CreateJoint(_JointType type)const{
+		return CreateJoint(type,TrackingState_NotTracked);
+	}
+	Joint CreateJoint(_TrackingState state)const{
+		return CreateJoint(JointType_SpineBase,state);
+	}
+	Joint CreateJoint(_JointType type,_TrackingState state)const{
+		Joint j;
+		j.JointType=type;
+		j.TrackingState=state;
+		j.Position.X=X;
+		j.Position.Y=Y;
+		j.Position.Z=Z;
+		return j;
+	}
+};
+const float JointPosition::defaultfloat=0.0001;
+
 void ErrorCheck(HRESULT hresult,const char *msg)noexcept(false){
 	if(hresult!=S_OK){
 		throw(std::runtime_error(msg));
@@ -196,12 +235,16 @@ void BodySimulate(Vector2D KinectSize){
 	IBodyFrameReader *pBodyReader;
 	ErrorCheck(pBodySource->OpenReader(&pBodyReader),"You can't open reader.");
 	
-
+	//毎フレーム更新するもの
+	//Body
+	const int BodyNum=6;
 	IBodyFrame *pBodyFrame=nullptr;
-	IBody *pBodies[6];
-	for(size_t i=0;i<6;i++){
+	IBody *pBodies[BodyNum];
+	for(size_t i=0;i<BodyNum;i++){
 		pBodies[i]=nullptr;
 	}
+	//Joint::Position
+	JointPosition jointPositions[BodyNum][JointType_Count];
 
 	//可視化のためにdepth画像も表示
 	//source
@@ -267,43 +310,68 @@ void BodySimulate(Vector2D KinectSize){
 			}
 		}
 		//複数あるbodyそれぞれに対して処理を行う
-		for(auto pBody:pBodies){
-			if(pBody==nullptr){
+		for(int j=0;j<BodyNum;j++){
+			if(pBodies[j]==nullptr){
 				continue;
 			}
 			try{
 				BOOLEAN flag;
-				ErrorCheck(pBody->get_IsTracked(&flag),"");
+				ErrorCheck(pBodies[j]->get_IsTracked(&flag),"");
 			} catch(const std::exception &e){
 				continue;
 			}
-			//関節の取得
-			Joint joints[JointType::JointType_Count];
-			Vector2D jointsPos[JointType::JointType_Count];//関節の描画位置
-			pBody->GetJoints(JointType::JointType_Count,joints);
 			//各関節の位置の取得
+			Vector2D jointsPos[JointType::JointType_Count];//関節のdepth画像描画位置
+			Vector2D jointsXY[JointType::JointType_Count];//関節のxy画像描画位置
+			Vector2D jointsZY[JointType::JointType_Count];//関節のzy画像描画位置
 			for(int i=0;i<JointType::JointType_Count;i++){
+				//depth画像に入れる関節の位置:jointsPos
 				try{
 					ICoordinateMapper *mapper;
 					ErrorCheck(pSensor->get_CoordinateMapper(&mapper),"mapper failed\n");
 					DepthSpacePoint point;//opencv系の座標。すなわちdxlibと同じ。
-					mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
+					//mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
+					mapper->MapCameraPointToDepthSpace(jointPositions[j][i].GetCameraSpacePoint(),&point);
 					jointsPos[i]=Vector2D(KinectSize.x-(int)point.X,(int)point.Y);//鏡像なので反転して取得
 				} catch(const std::exception &e){
 					printfDx(e.what());
 				}
+				//xy画像・zy画像に入れる関節の位置:jointsXY,jointsZY
+				const double hAngle=70.0,vAngle=60.0;
+				const float halfDepthRange=8.0/2;
+				float posz=jointPositions[j][i].Z;
+				if(posz==0.0){
+					//0除算を防ぐ。本来は例外処理するべき
+					posz=JointPosition::defaultfloat;
+				}
+				//xy画像の中心は(KinectSize.x/2,KinectSize.y*3/2)に描画
+				jointsXY[i]=Vector2D((int)(KinectSize.x/2*jointPositions[j][i].X/jointPositions[j][i].Z/std::sin(hAngle/360*M_PI)),(int)(KinectSize.y/2*jointPositions[j][i].Y/jointPositions[j][i].Z/std::sin(vAngle/360*M_PI)));//通常の座標系における中心からの相対距離
+				jointsXY[i]=Vector2D(jointsXY[i].x,-jointsXY[i].y)+Vector2D(KinectSize.x/2,KinectSize.y*3/2);//DXライブラリの座標系に変換し、更に絶対位置に変換
+				//zy画像の中心は(KinectSize.x*3/2,KinectSize.y*3/2)に描画
+				jointsZY[i]=Vector2D((int)(KinectSize.x*(halfDepthRange/2-jointPositions[j][i].Z)/halfDepthRange),(int)(KinectSize.x*jointPositions[j][i].Y/halfDepthRange));//現実世界の座標系での中心からの相対距離
+				jointsZY[i]=Vector2D(jointsZY[i].x,-jointsZY[i].y)+KinectSize*3/2;//DXライブラリの座標系に変換し、更に絶対位置に変換
 			}
 			//各関節の描画
-			for(const Vector2D &v:jointsPos){
-				DrawCircle(v.x,v.y,circlesize,GetColor(0,255,0),FALSE);
+			for(int i=0;i<JointType::JointType_Count;i++){
+				DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,GetColor(0,255,0),FALSE);//depth画像
+				DrawCircle(jointsXY[i].x,jointsXY[i].y,circlesize,GetColor(0,255,0),FALSE);//xy画像
+				DrawCircle(jointsZY[i].x,jointsZY[i].y,circlesize,GetColor(0,255,0),FALSE);//zy座標
 			}
 			//各ボーンの描画
 			for(const auto &pair:bonePairs){
+				//depth画像
 				Vector2D pos[2]={jointsPos[pair.first],jointsPos[pair.second]};
 				DrawLine(pos[0].x,pos[0].y,pos[1].x,pos[1].y,GetColor(255,0,0),1);
+				//xy画像
+				Vector2D posXY[2]={jointsXY[pair.first],jointsXY[pair.second]};
+				DrawLine(posXY[0].x,posXY[0].y,posXY[1].x,posXY[1].y,GetColor(255,0,0),1);
+				//zy画像
+				Vector2D posZY[2]={jointsZY[pair.first],jointsZY[pair.second]};
+				DrawLine(posZY[0].x,posZY[0].y,posZY[1].x,posZY[1].y,GetColor(255,0,0),1);
 			}
 		}
-		//戦闘のbodyに対して、xy画像とzy画像を描画する
+/*
+		//全てのbodyに対して、xy画像とzy画像を描画する
 		for(auto pBody:pBodies){
 			if(pBody!=nullptr){
 				//現実世界における、各bodyのkinectからの座標を取得する。mm単位のdepth画像ではなく、skeltonから取得しているので単位はm。
@@ -322,7 +390,7 @@ void BodySimulate(Vector2D KinectSize){
 					} else{
 						int a=0;
 					}
-					jointsXY[i]=Vector2D((int)(KinectSize.x*joints[i].Position.X/joints[i].Position.Z/std::sin(hAngle/360*M_PI)),(int)(KinectSize.y*joints[i].Position.Y/joints[i].Position.Z/std::sin(vAngle/360*M_PI)));//通常の座標系における中心からの相対距離
+					jointsXY[i]=Vector2D((int)(KinectSize.x/2*joints[i].Position.X/joints[i].Position.Z/std::sin(hAngle/360*M_PI)),(int)(KinectSize.y/2*joints[i].Position.Y/joints[i].Position.Z/std::sin(vAngle/360*M_PI)));//通常の座標系における中心からの相対距離
 					jointsXY[i]=Vector2D(jointsXY[i].x,-jointsXY[i].y)+Vector2D(KinectSize.x/2,KinectSize.y*3/2);//DXライブラリの座標系に変換し、更に絶対位置に変換
 					//zy画像の中心は(KinectSize.x*3/2,KinectSize.y*3/2)に描画
 					jointsZY[i]=Vector2D((int)(KinectSize.x*(halfDepthRange/2-joints[i].Position.Z)/halfDepthRange),(int)(KinectSize.x*joints[i].Position.Y/halfDepthRange));//現実世界の座標系での中心からの相対距離
@@ -342,6 +410,7 @@ void BodySimulate(Vector2D KinectSize){
 				}
 			}
 		}
+//*/
 		
 		//情報更新
 		//depth
@@ -371,6 +440,15 @@ void BodySimulate(Vector2D KinectSize){
 			ErrorCheck(pBodyFrame->GetAndRefreshBodyData(6,pBodies),"access failed\n");//bodyデータをpBodiesに格納
 			pBodyFrame->Release();//これ以降pBodyFrameは使わない
 			printfDx("success\n");
+			for(int j=0;j<BodyNum;j++){
+				//関節の実座標位置をjointPositionsに格納
+				Joint joints[JointType::JointType_Count];
+				pBodies[j]->GetJoints(JointType::JointType_Count,joints);//関節位置の実座標の取得
+				//jointPositionsに関節の実座標を格納
+				for(int i=0;i<JointType_Count;i++){
+					jointPositions[j][i]=JointPosition(joints[i].Position);
+				}
+			}
 		} catch(const std::exception &e){
 			printfDx(e.what());
 		}
