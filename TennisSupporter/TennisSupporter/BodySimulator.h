@@ -29,12 +29,13 @@ protected:
 	int m_writeCount;//書き込んでいる時間の計測
 	
 	//記録した物を再生する際に用いるデータ
-	int m_playFrame;//今何フレーム目を再生しているか
+	double m_playFrame;//今何フレーム目を再生しているか
 	std::ifstream m_readFile;//再生データの読み込み先
 	double m_playRate;//再生速度
 	std::vector<std::vector<std::vector<BodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。
 	std::vector<double> m_data;//グラフ化するデータ
 	double m_dataMin,m_dataMax;//m_dataの最大値最小値
+	int m_font;//グラフに表示する文字のfont
 
 	//関数
 protected:

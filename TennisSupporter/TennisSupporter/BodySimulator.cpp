@@ -12,7 +12,8 @@ const int BodySimulator::drawFps=60;
 const Vector2D BodySimulator::kinectSize=Vector2D(512,424);
 
 BodySimulator::BodySimulator()
-	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFrame(0),m_playRate(1.0),m_dataMin(300),m_dataMax(-300)
+	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFrame(0.0),m_playRate(1.0),m_dataMin(300),m_dataMax(-300),
+	m_font(CreateFontToHandle("メイリオ",12,1,-1))
 {
 	//センサーの起動
 	m_pSensor=nullptr;
@@ -34,6 +35,8 @@ BodySimulator::~BodySimulator(){
 
 	m_writeFile.close();
 	m_readFile.close();
+
+	DeleteFontToHandle(m_font);
 }
 
 bool BodySimulator::ReadFile(const char *filename){
@@ -106,7 +109,7 @@ bool BodySimulator::ReadFile(const char *filename){
 		return false;
 	}
 	//グラフについてのデータ読み取り
-	DataBuild(JointType_SpineBase);
+	DataBuild(JointType_ShoulderRight,JointType_ElbowRight,JointType_SpineShoulder);
 
 	return true;
 }
@@ -172,7 +175,7 @@ void BodySimulator::DataBuild(JointType edge,JointType point1,JointType point2){
 }
 
 int BodySimulator::CalReadIndex()const{
-	return (int)(m_playFrame*captureFps*m_playRate/drawFps);
+	return (int)(m_playFrame*captureFps/drawFps);
 }
 
 int BodySimulator::Update(){
@@ -223,7 +226,7 @@ int BodySimulator::Update(){
 			if(ReadFile(("SaveData/"+to_string_0d(0,3)+".txt").c_str())){
 				//読み込み成功時のみ、再生モードへ
 				m_mode=1;
-				m_playFrame=0;
+				m_playFrame=0.0;
 			}
 		}
 		break;
@@ -231,7 +234,7 @@ int BodySimulator::Update(){
 	case(1):
 		printfDx("PlayingDataMode\n");
 		int a=CalReadIndex();
-		m_playFrame++;
+		m_playFrame+=m_playRate;
 		int b=CalReadIndex();//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
 		if(!m_readFile || a==b){
 			//特に何もしない
@@ -239,8 +242,15 @@ int BodySimulator::Update(){
 			if(b<m_playData.size()){
 				m_pBodyKinectSensor->Update(m_playData[b]);
 			}else{
-				m_mode=0;
+				//m_mode=0;
 			}
+		}
+		if(keyboard_get(KEY_INPUT_NUMPADENTER)==1){
+			//Enterキー入力で先頭から再生
+			m_playFrame=0.0;
+		} else if(keyboard_get(KEY_INPUT_BACK)==1){
+			//Backキー入力で記録モードに戻る
+			m_mode=0;
 		}
 		break;
 	}
@@ -278,12 +288,20 @@ void BodySimulator::Draw()const{
 		m_pBodyKinectSensor->Draw(m_pSensor,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
 		//グラフ描画
 		{
-			const Vector2D graphPos(20,20);
+			const Vector2D graphPos(100,60);
 			const int graphHeight=360;
+			//折れ線の描画
 			for(size_t i=0,datanum=m_data.size();i<datanum;i++){
 				DrawPixel(graphPos.x+i,graphPos.y+(int)(graphHeight/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[i])),GetColor(128,255,255));
 			}
+			//再生時間の描画
 			DrawLine(graphPos.x+CalReadIndex(),graphPos.y,graphPos.x+CalReadIndex(),graphPos.y+graphHeight,GetColor(128,128,128),1);
+			//data最大値の表示
+			DrawLine(graphPos.x,graphPos.y,graphPos.x+writeCountMax,graphPos.y,GetColor(128,128,128),1);
+			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y,std::to_string(m_dataMax),GetColor(255,255,255),m_font);
+			//data最小値の表示
+			DrawLine(graphPos.x,graphPos.y+graphHeight,graphPos.x+writeCountMax,graphPos.y+graphHeight,GetColor(128,128,128),1);
+			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y+graphHeight,std::to_string(m_dataMin),GetColor(255,255,255),m_font);
 		}
 		break;
 	}
