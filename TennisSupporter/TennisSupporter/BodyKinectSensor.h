@@ -10,6 +10,7 @@
 //body要素を読み取るkinectセンサーを管理する
 class BodyKinectSensor{
 	//型・列挙体
+public:
 	struct JointPosition{
 		static const float defaultfloat;
 		float X;
@@ -30,6 +31,8 @@ class BodyKinectSensor{
 		Joint CreateJoint(_JointType type)const;
 		Joint CreateJoint(_TrackingState state)const;
 		Joint CreateJoint(_JointType type,_TrackingState state)const;
+		//自分から２つの別のJointPositionへのベクトルの交わる角度を求める(0～180度)
+		double CalculateAngle(JointPosition v1,JointPosition v2)const;
 	};
 	
 	//定数
@@ -43,6 +46,9 @@ protected:
 	IBodyFrameReader *m_pBodyReader;
 
 	//関数
+protected:
+	bool BodyIndexSignificance(size_t bodyIndex)const;//bodyIndex番目のデータは有意なデータかを判定する（全てのJointPositionが(0,0,0)でないかどうか）
+
 public:
 	BodyKinectSensor(IKinectSensor *pSensor);
 	~BodyKinectSensor();
@@ -50,7 +56,11 @@ public:
 	int Update();//kinectから情報を取得し更新する
 	int Update(std::ifstream &readFile);//テキストデータから情報を１行分取得し更新する
 	void Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const;
-
+	//情報取得のために用いる
+	JointPosition GetJointPosition(_JointType jointType)const;//１番最初に見えるbodyを自動判定して実行
+	JointPosition GetJointPosition(size_t bodyIndex,_JointType jointType)const;
+	double GetRadian(_JointType edge,_JointType point1,_JointType point2)const;//１番最初に見えるbodyを自動判定して実行
+	double GetRadian(size_t bodyIndex,_JointType edge,_JointType point1,_JointType point2)const;
 };
 
 #endif // !DEF_BODYKINECTSENSOR_H

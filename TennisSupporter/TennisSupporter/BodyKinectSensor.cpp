@@ -105,6 +105,23 @@ Joint BodyKinectSensor::JointPosition::CreateJoint(_JointType type,_TrackingStat
 	return j;
 }
 
+//自分から２つの別のJointPositionへのベクトルの交わる角度を求める(0～180度)
+double BodyKinectSensor::JointPosition::CalculateAngle(JointPosition v1,JointPosition v2)const{
+	//３次元ユークリッド平面での内積を用いて求める
+	double innerProduct=(double)((v1.X-this->X)*(v2.X-this->X)+(v1.Y-this->Y)*(v2.Y-this->Y)+(v1.Z-this->Z)*(v2.Z-this->Z));
+	double distanceV1=std::sqrt((double)((v1.X-this->X)*(v1.X-this->X)+(v1.Y-this->Y)*(v1.Y-this->Y)+(v1.Z-this->Z)*(v1.Z-this->Z)));
+	double distanceV2=std::sqrt((double)((v2.X-this->X)*(v2.X-this->X)+(v2.Y-this->Y)*(v2.Y-this->Y)+(v2.Z-this->Z)*(v2.Z-this->Z)));
+	//内積の公式:innerProduct=distanceV1*distanceV2*cos(rad)
+	double rad;
+	try{
+		rad=std::acos(innerProduct/distanceV1/distanceV2);
+	} catch(const std::exception &e){
+		printfDx(e.what());
+		printfDx("\n");
+		rad=0.0;
+	}
+	return rad;
+}
 
 //-------------------BodyKinectSensor-------------------
 const std::vector<std::pair<_JointType,_JointType>> BodyKinectSensor::bonePairs={
@@ -133,6 +150,30 @@ const std::vector<std::pair<_JointType,_JointType>> BodyKinectSensor::bonePairs=
 	std::make_pair<_JointType,_JointType>(JointType_KneeLeft,JointType_AnkleLeft),
 	std::make_pair<_JointType,_JointType>(JointType_AnkleLeft,JointType_FootLeft)
 };
+
+bool BodyKinectSensor::BodyIndexSignificance(size_t bodyIndex)const{
+	//配列外参照の処理
+	if(bodyIndex>=bodyNum){
+		return false;
+	}
+	//本処理
+	bool flag=false;
+	for(size_t i=0;i<JointType_Count;i++){
+		if(m_jointPositions[bodyIndex][i].X!=0.0){
+			flag=true;
+			break;
+		}
+		if(m_jointPositions[bodyIndex][i].Y!=0.0){
+			flag=true;
+			break;
+		}
+		if(m_jointPositions[bodyIndex][i].Z!=0.0){
+			flag=true;
+			break;
+		}
+	}
+	return flag;
+}
 
 BodyKinectSensor::BodyKinectSensor(IKinectSensor *pSensor){
 	//source
@@ -290,4 +331,32 @@ void BodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D de
 			DrawLine(posZY[0].x,posZY[0].y,posZY[1].x,posZY[1].y,GetColor(255,0,0),1);
 		}
 	}
+}
+
+BodyKinectSensor::JointPosition BodyKinectSensor::GetJointPosition(_JointType jointType)const{
+	for(size_t i=0;i<bodyNum;i++){
+		if(BodyIndexSignificance(i)){
+			return GetJointPosition(i,jointType);
+		}
+	}
+	//ここから先は例外処理。bodyが１つも見つからなかった時の処理
+	return JointPosition();
+}
+
+BodyKinectSensor::JointPosition BodyKinectSensor::GetJointPosition(size_t bodyIndex,_JointType jointType)const{
+	return m_jointPositions[bodyIndex][jointType];
+}
+
+double BodyKinectSensor::GetRadian(_JointType edge,_JointType point1,_JointType point2)const{
+	for(size_t i=0;i<bodyNum;i++){
+		if(BodyIndexSignificance(i)){
+			return GetRadian(i,edge,point1,point2);
+		}
+	}
+	//ここから先は例外処理。bodyが１つも見つからなかった時の処理
+	return 0.0;
+}
+
+double BodyKinectSensor::GetRadian(size_t bodyIndex,_JointType edge,_JointType point1,_JointType point2)const{
+	return m_jointPositions[bodyIndex][edge].CalculateAngle(m_jointPositions[bodyIndex][point1],m_jointPositions[bodyIndex][point2]);
 }

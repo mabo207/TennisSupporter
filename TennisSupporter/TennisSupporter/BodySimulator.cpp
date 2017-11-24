@@ -1,3 +1,6 @@
+#define _USE_MATH_DEFINES
+
+#include<cmath>
 #include"BodySimulator.h"
 #include"DxLib.h"
 #include"input.h"
@@ -121,6 +124,9 @@ int BodySimulator::Update(){
 }
 
 void BodySimulator::Draw()const{
+	printfDx("Pos[JointType_SpineBase]:%f\n",m_pBodyKinectSensor->GetJointPosition(JointType_SpineBase).Z);
+	printfDx("Angle:%f\n\n",m_pBodyKinectSensor->GetRadian(JointType_ShoulderRight,JointType_SpineShoulder,JointType_WristRight)/M_PI*180);
+
 	Vector2D depthPos(kinectSize/2)
 		,xyPos(kinectSize.x/2,kinectSize.y*3/2)
 		,zyPos(kinectSize*3/2);
