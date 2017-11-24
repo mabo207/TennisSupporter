@@ -500,3 +500,6 @@ void Timer::Update(){
 void Timer::EnforceEnd(){
 	counter=endTimer;
 }
+
+
+
