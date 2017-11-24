@@ -275,6 +275,26 @@ int BodyKinectSensor::Update(std::ifstream &readFile){
 	}
 }
 
+int BodyKinectSensor::Update(const std::vector<std::vector<JointPosition>> &frameData){
+	for(size_t i=0,topsize=frameData.size();i<bodyNum;i++){
+		//”z—ñ‚Ì‘å‚«‚³‚ð‹L˜^
+		size_t secondsize=0;
+		if(i<topsize){
+			secondsize=frameData[i].size();
+		}
+		//Ši”[
+		for(size_t j=0;j<JointType_Count;j++){
+			if(i<topsize && j<secondsize){
+				m_jointPositions[i][j]=frameData[i][j];
+			} else{
+				//frameData‚Ì”z—ñŠOŽQÆ‚ª‹N‚±‚éŽž‚ÍƒSƒ~ƒf[ƒ^‚ðŠi”[
+				m_jointPositions[i][j]=JointPosition();
+			}
+		}
+	}
+	return 0;
+}
+
 void BodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const{
 	const int circlesize=3;//ŠÖß‚ð•\‚·‰~‚Ì”¼Œa
 	//•¡”‚ ‚ébody‚»‚ê‚¼‚ê‚É‘Î‚µ‚Äˆ—‚ðs‚¤

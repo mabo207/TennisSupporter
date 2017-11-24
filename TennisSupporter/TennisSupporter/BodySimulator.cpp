@@ -25,6 +25,7 @@ BodySimulator::BodySimulator()
 	//DepthKinectSensorの起動
 	m_pDepthKinectSensor=std::shared_ptr<DepthKinectSensor>(new DepthKinectSensor(kinectSize,m_pSensor));
 	//m_writeFile,m_readFileは、必要になり次第初期化する。
+
 }
 
 BodySimulator::~BodySimulator(){
@@ -33,6 +34,79 @@ BodySimulator::~BodySimulator(){
 
 	m_writeFile.close();
 	m_readFile.close();
+}
+
+bool BodySimulator::ReadFile(const char *filename){
+	std::ifstream readFile(filename);
+	if(!m_readFile){
+		//読み込み失敗時の処理
+		return false;
+	}
+	//データを全て読み込むが、量が多いので上手くreserveしながら読み込む
+	m_playData.reserve(writeCountMax);//最大記録フレーム数によりreserve
+
+	std::vector<std::vector<BodyKinectSensor::JointPosition>> frameData;
+	frameData.reserve(BodyKinectSensor::bodyNum);
+
+	std::vector<BodyKinectSensor::JointPosition> bodyData;
+	bodyData.reserve(JointType_Count);
+	
+	size_t bodyindex=0,jointindex=0;
+	std::string parts="";
+	parts.reserve(50);
+	bool inBracketsFlag=false;//現在"(~~)"の中を読み取っているかどうか
+	char ch='a';//初期値はテキトー
+	try{
+		while(true){
+			ch=readFile.get();
+			if(ch==EOF){
+				//ファイルの末尾到達時
+				break;
+			} else if(ch=='\n'){
+				//1行読み終わる時(==1フレーム読み終わり)
+				m_playData.push_back(frameData);
+				frameData.clear();
+				bodyData.clear();
+				bodyindex=0;
+				jointindex=0;
+				parts="";
+				inBracketsFlag=false;
+			} else{
+				if(inBracketsFlag){
+					//()内読み取り時(=')'を探している)
+					parts.push_back(ch);
+					if(ch==')'){
+						inBracketsFlag=!inBracketsFlag;
+						//jointPositionsに格納
+						if(bodyindex<BodyKinectSensor::bodyNum && jointindex<JointType_Count){
+							bodyData.push_back(BodyKinectSensor::JointPosition(parts));
+							//index系の更新
+							jointindex++;
+							if(jointindex>=JointType_Count){
+								jointindex=0;
+								bodyindex++;
+								frameData.push_back(bodyData);
+								bodyData.clear();
+							}
+						}
+						parts.clear();
+					}
+				} else{
+					//()外読み取り時(='('を探している)
+					if(ch=='('){
+						inBracketsFlag=!inBracketsFlag;
+						parts.push_back(ch);
+					}
+				}
+			}
+		}
+	}catch(const std::exception &e){
+		//メモリ関連のエラー対策
+		printf(e.what());
+		return false;
+	}
+
+	return true;
 }
 
 int BodySimulator::Update(){
@@ -80,10 +154,17 @@ int BodySimulator::Update(){
 		}
 		//記録データ再生モードへの移行処理
 		if(keyboard_get(KEY_INPUT_0)==1){
+/*
 			m_readFile.open("SaveData/"+to_string_0d(0,3)+".txt");
 			if(!m_readFile){
 				//読み込み失敗時の処理
 			} else{
+				//読み込み成功時のみ、再生モードへ
+				m_mode=1;
+				m_playFlame=0;
+			}
+//*/
+			if(ReadFile(("SaveData/"+to_string_0d(0,3)+".txt").c_str())){
 				//読み込み成功時のみ、再生モードへ
 				m_mode=1;
 				m_playFlame=0;
@@ -99,11 +180,19 @@ int BodySimulator::Update(){
 		if(!m_readFile || a==b){
 			//特に何もしない
 		} else{
+/*
 			//ファイルを1行読み込みながら、jointPositionsにデータを格納
 			int index=m_pBodyKinectSensor->Update(m_readFile);
 			//ファイル末尾に到達したら、再生モードは終了し記録モードに戻る
+
 			if(index!=0){
 				m_readFile.close();
+				m_mode=0;
+			}
+//*/
+			if(b<m_playData.size()){
+				m_pBodyKinectSensor->Update(m_playData[b]);
+			}else{
 				m_mode=0;
 			}
 		}

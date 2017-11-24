@@ -32,10 +32,12 @@ protected:
 	int m_playFlame;//今何フレーム目を再生しているか
 	std::ifstream m_readFile;//再生データの読み込み先
 	double m_playRate;//再生速度
+	std::vector<std::vector<std::vector<BodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。
 
 
 	//関数
 protected:
+	bool ReadFile(const char *filename);
 
 public:
 	BodySimulator();

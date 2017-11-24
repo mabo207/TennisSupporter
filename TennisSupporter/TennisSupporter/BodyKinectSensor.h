@@ -38,6 +38,7 @@ public:
 	//定数
 protected:
 	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;
+public:
 	static const size_t bodyNum=6;
 
 	//変数
@@ -55,6 +56,7 @@ public:
 	void OutputJointPoitions(std::ofstream &writeFile)const;//writeFileに現在のjointPositionsを1行で出力する
 	int Update();//kinectから情報を取得し更新する
 	int Update(std::ifstream &readFile);//テキストデータから情報を１行分取得し更新する
+	int Update(const std::vector<std::vector<JointPosition>> &frameData);//読み込み済みデータを用いて更新する
 	void Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const;
 	//情報取得のために用いる
 	JointPosition GetJointPosition(_JointType jointType)const;//１番最初に見えるbodyを自動判定して実行
