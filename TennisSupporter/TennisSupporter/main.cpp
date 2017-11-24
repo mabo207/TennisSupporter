@@ -4,6 +4,8 @@
 #include"DxLib.h"
 #include<Kinect.h>
 #include"input.h"
+#include"KinectTools.h"
+#include"BodySimulator.h"
 
 #include<set>
 #include<vector>
@@ -109,12 +111,6 @@ struct JointPosition{
 	}
 };
 const float JointPosition::defaultfloat=0.0001;
-
-void ErrorCheck(HRESULT hresult,const char *msg)noexcept(false){
-	if(hresult!=S_OK){
-		throw(std::runtime_error(msg));
-	}
-}
 
 void DepthSimulate(bool objectcheck,Vector2D KinectSize)noexcept(false){
 	//kinectの初期化
@@ -389,15 +385,6 @@ void BodySimulate(Vector2D KinectSize){
 		}
 		//複数あるbodyそれぞれに対して処理を行う
 		for(size_t j=0;j<BodyNum;j++){
-			if(pBodies[j]==nullptr){
-				continue;
-			}
-			try{
-				BOOLEAN flag;
-				ErrorCheck(pBodies[j]->get_IsTracked(&flag),"");
-			} catch(const std::exception &e){
-				continue;
-			}
 			//各関節の位置の取得
 			Vector2D jointsPos[JointType::JointType_Count];//関節のdepth画像描画位置
 			Vector2D jointsXY[JointType::JointType_Count];//関節のxy画像描画位置
@@ -662,6 +649,29 @@ void BodySimulate(Vector2D KinectSize){
 
 }
 
+void Simulate(){
+	BodySimulator bs;
+	//アプリケーション動作
+	while(ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
+		//ゲーム本体
+		//キー情報更新
+		input_update();
+
+		//描画
+		clsDx();
+		bs.Draw();
+
+		//情報更新
+		int index=bs.Update();
+
+		//終了検出
+		if(keyboard_get(KEY_INPUT_ESCAPE)>0 || index!=0){
+			break;
+		}
+	}
+
+}
+
 int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
 	try{
 		const Vector2D KinectSize(512,424);
@@ -694,7 +704,8 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
 
 		//実行
 		//DepthSimulate(false,KinectSize);
-		BodySimulate(KinectSize);
+		//BodySimulate(KinectSize);
+		Simulate();
 
 		//終了処理
 		DeleteInputControler();//入力機構の解放

@@ -262,5 +262,6 @@ public:
 	void EnforceEnd();
 };
 
+
 #endif // !DEF_TOOLSLIB_H
 #pragma once
