@@ -21,13 +21,14 @@ protected:
 	std::shared_ptr<BodyKinectSensor> m_pBodyKinectSensor;//Body部分の更新を行う
 	std::shared_ptr<DepthKinectSensor> m_pDepthKinectSensor;//depth部分の更新を行う
 
+	int m_mode;//現在行っているのがどのモードなのか(0:記録 1:再生 2:再生したもののグラフ化)
+
 	//データ記録の際に用いるデータ
 	std::ofstream m_writeFile;//データの書き込み先
 	bool m_fileWriteFlag;//ファイル入力をするかどうか
 	int m_writeCount;//書き込んでいる時間の計測
 	
 	//記録した物を再生する際に用いるデータ
-	bool m_playDataFlag;//再生するかどうか
 	int m_playFlame;//今何フレーム目を再生しているか
 	std::ifstream m_readFile;//再生データの読み込み先
 	double m_playRate;//再生速度

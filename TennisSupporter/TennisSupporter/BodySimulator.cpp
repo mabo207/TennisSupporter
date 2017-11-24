@@ -12,7 +12,7 @@ const int BodySimulator::drawFps=60;
 const Vector2D BodySimulator::kinectSize=Vector2D(512,424);
 
 BodySimulator::BodySimulator()
-	:m_fileWriteFlag(false),m_writeCount(0),m_playDataFlag(false),m_playFlame(0),m_playRate(1.0)
+	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFlame(0),m_playRate(1.0)
 {
 	//センサーの起動
 	m_pSensor=nullptr;
@@ -36,8 +36,9 @@ BodySimulator::~BodySimulator(){
 }
 
 int BodySimulator::Update(){
-	if(!m_playDataFlag){
-		//情報の記録を行えるモードの時
+	switch(m_mode){
+		//記録モード
+	case(0):
 		printfDx("RecordingDataMode\n");
 		//depth
 		//データの読み取り
@@ -84,28 +85,31 @@ int BodySimulator::Update(){
 				//読み込み失敗時の処理
 			} else{
 				//読み込み成功時のみ、再生モードへ
-				m_playDataFlag=true;
+				m_mode=1;
 				m_playFlame=0;
 			}
 		}
-	} else{
-		//記録したものの再生を行うモード
+		break;
+		//再生モード
+	case(1):
 		printfDx("PlayingDataMode\n");
 		int a=(int)(m_playFlame*captureFps*m_playRate/drawFps);
 		m_playFlame++;
 		int b=(int)(m_playFlame*captureFps*m_playRate/drawFps);//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
 		if(!m_readFile || a==b){
 			//特に何もしない
-		}else{
+		} else{
 			//ファイルを1行読み込みながら、jointPositionsにデータを格納
 			int index=m_pBodyKinectSensor->Update(m_readFile);
 			//ファイル末尾に到達したら、再生モードは終了し記録モードに戻る
 			if(index!=0){
 				m_readFile.close();
-				m_playDataFlag=!m_playDataFlag;
+				m_mode=0;
 			}
 		}
+		break;
 	}
+	//全モード共通処理
 	//再生モードにおける再生速度調整
 	if(keyboard_get(KEY_INPUT_Z)>0){
 		//遅くする
@@ -119,6 +123,7 @@ int BodySimulator::Update(){
 	}
 	printfDx("playRate:\n%f",m_playRate);
 
+
 	//特に終了条件は無いので0を常に返す
 	return 0;
 }
@@ -131,7 +136,7 @@ void BodySimulator::Draw()const{
 		,xyPos(kinectSize.x/2,kinectSize.y*3/2)
 		,zyPos(kinectSize*3/2);
 	//depth画像描画(データ記録時のみ描画する)
-	if(!m_playDataFlag){
+	if(m_mode==0){
 		m_pDepthKinectSensor->Draw(depthPos);
 	}
 	//複数あるbodyそれぞれに対して処理を行う
