@@ -12,7 +12,7 @@ const int BodySimulator::drawFps=60;
 const Vector2D BodySimulator::kinectSize=Vector2D(512,424);
 
 BodySimulator::BodySimulator()
-	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFlame(0),m_playRate(1.0)
+	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFrame(0),m_playRate(1.0),m_dataMin(300),m_dataMax(-300)
 {
 	//センサーの起動
 	m_pSensor=nullptr;
@@ -105,8 +105,74 @@ bool BodySimulator::ReadFile(const char *filename){
 		printf(e.what());
 		return false;
 	}
+	//グラフについてのデータ読み取り
+	DataBuild(JointType_SpineBase);
 
 	return true;
+}
+
+void BodySimulator::DataBuild(JointType jointtype){
+	size_t playdatasize=m_playData.size();
+	m_data.clear();
+	m_data.reserve(playdatasize);
+	for(size_t i=0;i<playdatasize;i++){
+		double data=0.0;
+		for(size_t j=0,bodynum=m_playData[i].size();j<bodynum;j++){
+			bool flag=false;
+			for(size_t k=0,jointnum=m_playData[i][j].size();k<jointnum;k++){
+				if(!(m_playData[i][j][k]==BodyKinectSensor::JointPosition())){
+					flag=true;
+					break;
+				}
+			}
+			if(flag){
+				data=m_playData[i][j][jointtype].Z;
+				break;
+			}
+		}
+		m_data.push_back(data);
+		if(i!=0){
+			m_dataMin=std::fmin(m_dataMin,data);
+			m_dataMax=std::fmax(m_dataMax,data);
+		} else{
+			m_dataMin=data;
+			m_dataMax=data;
+		}
+	}
+}
+
+void BodySimulator::DataBuild(JointType edge,JointType point1,JointType point2){
+	size_t playdatasize=m_playData.size();
+	m_data.clear();
+	m_data.reserve(playdatasize);
+	for(size_t i=0;i<playdatasize;i++){
+		double data=0.0;
+		for(size_t j=0,bodynum=m_playData[i].size();j<bodynum;j++){
+			bool flag=false;
+			for(size_t k=0,jointnum=m_playData[i][j].size();k<jointnum;k++){
+				if(!(m_playData[i][j][k]==BodyKinectSensor::JointPosition())){
+					flag=true;
+					break;
+				}
+			}
+			if(flag){
+				data=m_playData[i][j][edge].CalculateAngle(m_playData[i][j][point1],m_playData[i][j][point2]);
+				break;
+			}
+		}
+		m_data.push_back(data);
+		if(i!=0){
+			m_dataMin=std::fmin(m_dataMin,data);
+			m_dataMax=std::fmax(m_dataMax,data);
+		} else{
+			m_dataMin=data;
+			m_dataMax=data;
+		}
+	}
+}
+
+int BodySimulator::CalReadIndex()const{
+	return (int)(m_playFrame*captureFps*m_playRate/drawFps);
 }
 
 int BodySimulator::Update(){
@@ -154,42 +220,22 @@ int BodySimulator::Update(){
 		}
 		//記録データ再生モードへの移行処理
 		if(keyboard_get(KEY_INPUT_0)==1){
-/*
-			m_readFile.open("SaveData/"+to_string_0d(0,3)+".txt");
-			if(!m_readFile){
-				//読み込み失敗時の処理
-			} else{
-				//読み込み成功時のみ、再生モードへ
-				m_mode=1;
-				m_playFlame=0;
-			}
-//*/
 			if(ReadFile(("SaveData/"+to_string_0d(0,3)+".txt").c_str())){
 				//読み込み成功時のみ、再生モードへ
 				m_mode=1;
-				m_playFlame=0;
+				m_playFrame=0;
 			}
 		}
 		break;
 		//再生モード
 	case(1):
 		printfDx("PlayingDataMode\n");
-		int a=(int)(m_playFlame*captureFps*m_playRate/drawFps);
-		m_playFlame++;
-		int b=(int)(m_playFlame*captureFps*m_playRate/drawFps);//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
+		int a=CalReadIndex();
+		m_playFrame++;
+		int b=CalReadIndex();//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
 		if(!m_readFile || a==b){
 			//特に何もしない
 		} else{
-/*
-			//ファイルを1行読み込みながら、jointPositionsにデータを格納
-			int index=m_pBodyKinectSensor->Update(m_readFile);
-			//ファイル末尾に到達したら、再生モードは終了し記録モードに戻る
-
-			if(index!=0){
-				m_readFile.close();
-				m_mode=0;
-			}
-//*/
 			if(b<m_playData.size()){
 				m_pBodyKinectSensor->Update(m_playData[b]);
 			}else{
@@ -218,16 +264,28 @@ int BodySimulator::Update(){
 }
 
 void BodySimulator::Draw()const{
-	printfDx("Pos[JointType_SpineBase]:%f\n",m_pBodyKinectSensor->GetJointPosition(JointType_SpineBase).Z);
-	printfDx("Angle:%f\n\n",m_pBodyKinectSensor->GetRadian(JointType_ShoulderRight,JointType_SpineShoulder,JointType_WristRight)/M_PI*180);
-
 	Vector2D depthPos(kinectSize/2)
 		,xyPos(kinectSize.x/2,kinectSize.y*3/2)
 		,zyPos(kinectSize*3/2);
-	//depth画像描画(データ記録時のみ描画する)
-	if(m_mode==0){
+	switch(m_mode){
+	case(0):
+		//データ記録時
 		m_pDepthKinectSensor->Draw(depthPos);
+		m_pBodyKinectSensor->Draw(m_pSensor,depthPos,kinectSize,xyPos,kinectSize,zyPos,kinectSize);
+		break;
+	case(1):
+		//再生時
+		m_pBodyKinectSensor->Draw(m_pSensor,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
+		//グラフ描画
+		{
+			const Vector2D graphPos(20,20);
+			const int graphHeight=360;
+			for(size_t i=0,datanum=m_data.size();i<datanum;i++){
+				DrawPixel(graphPos.x+i,graphPos.y+(int)(graphHeight/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[i])),GetColor(128,255,255));
+			}
+			DrawLine(graphPos.x+CalReadIndex(),graphPos.y,graphPos.x+CalReadIndex(),graphPos.y+graphHeight,GetColor(128,128,128),1);
+		}
+		break;
 	}
-	//複数あるbodyそれぞれに対して処理を行う
-	m_pBodyKinectSensor->Draw(m_pSensor,depthPos,kinectSize,xyPos,kinectSize,zyPos,kinectSize);
+	
 }

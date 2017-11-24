@@ -68,6 +68,11 @@ BodyKinectSensor::JointPosition::JointPosition(const std::string &str){
 	}
 }
 
+//==‚ÌÀ‘•
+bool BodyKinectSensor::JointPosition::operator==(const JointPosition &otherobj)const{
+	return (this->X==otherobj.X && this->Y==otherobj.Y && this->X==otherobj.X);
+}
+
 //"(X,Y,Z)"‚Æ‚¢‚¤•¶š—ñ‚ğo—Í‚·‚é
 std::string BodyKinectSensor::JointPosition::GetString()const{
 	return "("+std::to_string(X)+","+std::to_string(Y)+","+std::to_string(Z)+")";
@@ -159,15 +164,7 @@ bool BodyKinectSensor::BodyIndexSignificance(size_t bodyIndex)const{
 	//–{ˆ—
 	bool flag=false;
 	for(size_t i=0;i<JointType_Count;i++){
-		if(m_jointPositions[bodyIndex][i].X!=0.0){
-			flag=true;
-			break;
-		}
-		if(m_jointPositions[bodyIndex][i].Y!=0.0){
-			flag=true;
-			break;
-		}
-		if(m_jointPositions[bodyIndex][i].Z!=0.0){
+		if(!(m_jointPositions[bodyIndex][i]==JointPosition())){
 			flag=true;
 			break;
 		}
