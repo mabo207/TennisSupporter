@@ -10,7 +10,7 @@ class BodySimulator{
 	//列挙体・型
 
 	//定数
-	static const int writeCountMax;//これ以上の時間はデータを書き込まないようにする
+	static const size_t writeCountMax;//これ以上の時間はデータを書き込まないようにする
 	static const int captureFps;//撮影データのfps
 	static const int drawFps;//描画時のfps
 	static const Vector2D kinectSize;//KinectV2の取得可能な画像サイズ（body,depth）
@@ -29,7 +29,7 @@ protected:
 	int m_writeCount;//書き込んでいる時間の計測
 	
 	//記録した物を再生する際に用いるデータ
-	int m_playFlame;//今何フレーム目を再生しているか
+	size_t m_playFlame;//今何フレーム目を再生しているか
 	std::ifstream m_readFile;//再生データの読み込み先
 	double m_playRate;//再生速度
 	std::vector<std::vector<std::vector<BodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。

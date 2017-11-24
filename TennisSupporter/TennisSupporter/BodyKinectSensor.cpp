@@ -68,6 +68,11 @@ BodyKinectSensor::JointPosition::JointPosition(const std::string &str){
 	}
 }
 
+//==の定義
+bool BodyKinectSensor::JointPosition::operator==(const JointPosition &otherobj)const{
+	return (this->X==otherobj.X && this->Y==otherobj.Y && this->Z==otherobj.Z);
+}
+
 //"(X,Y,Z)"という文字列を出力する
 std::string BodyKinectSensor::JointPosition::GetString()const{
 	return "("+std::to_string(X)+","+std::to_string(Y)+","+std::to_string(Z)+")";
@@ -276,6 +281,7 @@ int BodyKinectSensor::Update(std::ifstream &readFile){
 }
 
 int BodyKinectSensor::Update(const std::vector<std::vector<JointPosition>> &frameData){
+	bool flag=false;//中にあるデータが全てゴミデータならfalseのままにし、関数は1を返すようにする
 	for(size_t i=0,topsize=frameData.size();i<bodyNum;i++){
 		//配列の大きさを記録
 		size_t secondsize=0;
@@ -290,9 +296,14 @@ int BodyKinectSensor::Update(const std::vector<std::vector<JointPosition>> &fram
 				//frameDataの配列外参照が起こる時はゴミデータを格納
 				m_jointPositions[i][j]=JointPosition();
 			}
+			flag=flag | !(m_jointPositions[i][j]==JointPosition());
 		}
 	}
-	return 0;
+	if(flag){
+		return 0;
+	} else{
+		return 1;
+	}
 }
 
 void BodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const{

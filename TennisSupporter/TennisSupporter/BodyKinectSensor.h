@@ -22,6 +22,8 @@ public:
 		JointPosition(_CameraSpacePoint pos);
 		//"(X,Y,Z)"‚Æ‚¢‚¤Œ`®‚Ì•¶š—ñ‚ğ“Ç‚İæ‚Á‚Ä‰Šú‰»‚·‚é
 		JointPosition(const std::string &str);
+		//==‚Ì’è‹`
+		bool operator==(const JointPosition &otherobj)const;
 		//"(X,Y,Z)"‚Æ‚¢‚¤•¶š—ñ‚ğo—Í‚·‚é
 		std::string GetString()const;
 		//_CameraSpacePoint‚ğì¬
