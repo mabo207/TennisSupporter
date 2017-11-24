@@ -147,12 +147,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BodyKinectSensor.cpp" />
+    <ClCompile Include="BodySimulator.cpp" />
+    <ClCompile Include="DepthKinectSensor.cpp" />
     <ClCompile Include="input.cpp" />
+    <ClCompile Include="KinectTools.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ToolsLib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BodyKinectSensor.h" />
+    <ClInclude Include="BodySimulator.h" />
+    <ClInclude Include="DepthKinectSensor.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="KinectTools.h" />
     <ClInclude Include="ToolsLib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
