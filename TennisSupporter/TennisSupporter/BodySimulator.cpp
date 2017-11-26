@@ -109,7 +109,8 @@ bool BodySimulator::ReadFile(const char *filename){
 		return false;
 	}
 	//グラフについてのデータ読み取り
-	DataBuild(JointType_ShoulderRight,JointType_ElbowRight,JointType_SpineShoulder);
+	DataBuild(JointType_HipRight);
+	//DataBuild(JointType_ShoulderRight,JointType_ElbowRight,JointType_SpineShoulder);
 
 	return true;
 }
@@ -159,7 +160,7 @@ void BodySimulator::DataBuild(JointType edge,JointType point1,JointType point2){
 				}
 			}
 			if(flag){
-				data=m_playData[i][j][edge].CalculateAngle(m_playData[i][j][point1],m_playData[i][j][point2]);
+				data=m_playData[i][j][edge].CalculateAngle(m_playData[i][j][point1],m_playData[i][j][point2])/M_PI*180;
 				break;
 			}
 		}
@@ -296,6 +297,12 @@ void BodySimulator::Draw()const{
 			}
 			//再生時間の描画
 			DrawLine(graphPos.x+CalReadIndex(),graphPos.y,graphPos.x+CalReadIndex(),graphPos.y+graphHeight,GetColor(128,128,128),1);
+			//現在の値の表示
+			if(CalReadIndex()>=0 && CalReadIndex()<(int)m_data.size()){
+				//配列外参照をする可能性があるので弾く。配列外参照時は描画しない。
+				int dataY=graphPos.y+(int)(graphHeight/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[CalReadIndex()]));
+				DrawLine(graphPos.x,dataY,graphPos.x+writeCountMax,dataY,GetColor(0,0,255),1);
+			}
 			//data最大値の表示
 			DrawLine(graphPos.x,graphPos.y,graphPos.x+writeCountMax,graphPos.y,GetColor(128,128,128),1);
 			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y,std::to_string(m_dataMax),GetColor(255,255,255),m_font);
