@@ -38,9 +38,8 @@ public:
 	};
 	
 	//’è”
-protected:
-	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;
 public:
+	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;
 	static const size_t bodyNum=6;
 
 	//•Ï”
