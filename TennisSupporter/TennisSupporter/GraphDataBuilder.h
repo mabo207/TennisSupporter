@@ -13,7 +13,7 @@ class GraphDataBuilder{
 	struct IDataFactory{
 		//関数
 		virtual double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const=0;
-		virtual void Draw()const=0;
+		virtual void Draw(Vector2D pos)const=0;
 		//静的関数
 		static std::shared_ptr<IDataFactory> CreateFactory(const std::vector<JointType> &input);
 	};
@@ -24,7 +24,7 @@ class GraphDataBuilder{
 		//関数
 		PosDataFactory(JointType i_type);
 		double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const;
-		void Draw()const;
+		void Draw(Vector2D pos)const;
 	};
 	//角度に対して用いるクラス
 	struct AngleDataFactory:public IDataFactory{
@@ -35,7 +35,7 @@ class GraphDataBuilder{
 		//関数
 		AngleDataFactory(JointType point1,JointType point2,JointType point3);
 		double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const;
-		void Draw()const;
+		void Draw(Vector2D pos)const;
 	};
 
 	//定数

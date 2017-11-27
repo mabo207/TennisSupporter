@@ -1,9 +1,8 @@
 #ifndef DEF_BODYSIMULATOR_H
 #define DEF_BODYSIMULATOR_H
 
-#include<memory>
-#include"BodyKinectSensor.h"
 #include"DepthKinectSensor.h"
+#include"GraphDataBuilder.h"
 
 //Kinectでbody要素を読み取り、記録・再生する機能
 class BodySimulator{
@@ -27,7 +26,7 @@ protected:
 	std::ofstream m_writeFile;//データの書き込み先
 	bool m_fileWriteFlag;//ファイル入力をするかどうか
 	int m_writeCount;//書き込んでいる時間の計測
-	
+
 	//記録した物を再生する際に用いるデータ
 	double m_playFrame;//今何フレーム目を再生しているか
 	std::ifstream m_readFile;//再生データの読み込み先
@@ -36,6 +35,7 @@ protected:
 	std::vector<double> m_data;//グラフ化するデータ
 	double m_dataMin,m_dataMax;//m_dataの最大値最小値
 	int m_font;//グラフに表示する文字のfont
+	std::shared_ptr<GraphDataBuilder> m_pGraphDataBuilder;//データ化の更新を管理する
 
 	//関数
 protected:

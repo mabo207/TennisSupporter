@@ -25,6 +25,8 @@ BodySimulator::BodySimulator()
 	m_pBodyKinectSensor=std::shared_ptr<BodyKinectSensor>(new BodyKinectSensor(m_pSensor));
 	//DepthKinectSensorの起動
 	m_pDepthKinectSensor=std::shared_ptr<DepthKinectSensor>(new DepthKinectSensor(kinectSize,m_pSensor));
+	//GraphDataBuilderの起動
+	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0)));
 	//m_writeFile,m_readFileは、必要になり次第初期化する。
 
 }
@@ -234,6 +236,7 @@ int BodySimulator::Update(){
 		//再生モード
 	case(1):
 		printfDx("PlayingDataMode\n");
+		//再生
 		int a=CalReadIndex();
 		m_playFrame+=m_playRate;
 		int b=CalReadIndex();//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
@@ -253,6 +256,8 @@ int BodySimulator::Update(){
 			//Backキー入力で記録モードに戻る
 			m_mode=0;
 		}
+		//入力インターフェース
+		m_pGraphDataBuilder->Update();
 		break;
 	}
 	//全モード共通処理
@@ -309,6 +314,9 @@ void BodySimulator::Draw()const{
 			//data最小値の表示
 			DrawLine(graphPos.x,graphPos.y+graphHeight,graphPos.x+writeCountMax,graphPos.y+graphHeight,GetColor(128,128,128),1);
 			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y+graphHeight,std::to_string(m_dataMin),GetColor(255,255,255),m_font);
+			
+			//読み込みデータインターフェースの描画
+			m_pGraphDataBuilder->Draw();
 		}
 		break;
 	}

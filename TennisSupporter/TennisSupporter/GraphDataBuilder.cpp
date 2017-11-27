@@ -22,8 +22,8 @@ double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<BodyKinectSe
 	return data[type].Z;
 }
 
-void GraphDataBuilder::PosDataFactory::Draw()const{
-	const Vector2D v=relativeInputPos.find(type)->second;
+void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
+	const Vector2D v=relativeInputPos.find(type)->second+pos;
 	DrawCircle(v.x,v.y,circleSize,GetColor(255,128,0));
 }
 
@@ -35,11 +35,11 @@ double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<BodyKinect
 	return data[type[1]].CalculateAngle(data[type[0]],data[type[2]]);
 }
 
-void GraphDataBuilder::AngleDataFactory::Draw()const{
+void GraphDataBuilder::AngleDataFactory::Draw(Vector2D pos)const{
 	Vector2D v[indexNum];
 	//“h‚è‚Â‚Ô‚µ
 	for(size_t i=0;i<indexNum;i++){
-		v[i]=relativeInputPos.find(type[i])->second;
+		v[i]=relativeInputPos.find(type[i])->second+pos;
 		DrawCircle(v[i].x,v[i].y,circleSize,GetColor(0,128,255));
 	}
 	//ü‚ğˆø‚­
@@ -51,33 +51,33 @@ void GraphDataBuilder::AngleDataFactory::Draw()const{
 
 //---------------GraphDataBuilder---------------
 const std::map<JointType,Vector2D> GraphDataBuilder::relativeInputPos={
-	std::pair<JointType,Vector2D>(JointType_SpineBase,Vector2D(75,150))
-	,std::pair<JointType,Vector2D>(JointType_SpineMid,Vector2D(75,120))
-	,std::pair<JointType,Vector2D>(JointType_Neck,Vector2D(75,70))
-	,std::pair<JointType,Vector2D>(JointType_Head,Vector2D(75,40))
-	,std::pair<JointType,Vector2D>(JointType_ShoulderLeft,Vector2D(55,90))
-	,std::pair<JointType,Vector2D>(JointType_ElbowLeft,Vector2D(35,90))
-	,std::pair<JointType,Vector2D>(JointType_WristLeft,Vector2D(15,90))
-	//,std::pair<JointType,Vector2D>(JointType_HandLeft,Vector2D(75,150))
-	,std::pair<JointType,Vector2D>(JointType_ShoulderRight,Vector2D(95,90))
-	,std::pair<JointType,Vector2D>(JointType_ElbowRight,Vector2D(115,90))
-	,std::pair<JointType,Vector2D>(JointType_WristRight,Vector2D(135,90))
-	//,std::pair<JointType,Vector2D>(JointType_HandRight,Vector2D(75,150))
-	,std::pair<JointType,Vector2D>(JointType_HipLeft,Vector2D(55,150))
-	,std::pair<JointType,Vector2D>(JointType_KneeLeft,Vector2D(55,180))
-	,std::pair<JointType,Vector2D>(JointType_AnkleLeft,Vector2D(55,210))
-	//,std::pair<JointType,Vector2D>(JointType_FootLeft,Vector2D(55,210))
-	,std::pair<JointType,Vector2D>(JointType_HipRight,Vector2D(95,150))
-	,std::pair<JointType,Vector2D>(JointType_KneeRight,Vector2D(95,180))
-	,std::pair<JointType,Vector2D>(JointType_AnkleRight,Vector2D(95,210))
-	//,std::pair<JointType,Vector2D>(JointType_FootRight,Vector2D(55,150))
-	,std::pair<JointType,Vector2D>(JointType_SpineShoulder,Vector2D(75,90))
-	//,std::pair<JointType,Vector2D>(JointType_HandTipLeft,Vector2D(50,150))
-	//,std::pair<JointType,Vector2D>(JointType_ThumbLeft,Vector2D(50,150))
-	//,std::pair<JointType,Vector2D>(JointType_HandTipRight,Vector2D(50,150))
-	//,std::pair<JointType,Vector2D>(JointType_ThumbRight,Vector2D(50,150))
+	std::pair<JointType,Vector2D>(JointType_SpineBase,Vector2D(105,200))
+	,std::pair<JointType,Vector2D>(JointType_SpineMid,Vector2D(105,160))
+	,std::pair<JointType,Vector2D>(JointType_Neck,Vector2D(105,90))
+	,std::pair<JointType,Vector2D>(JointType_Head,Vector2D(105,50))
+	,std::pair<JointType,Vector2D>(JointType_ShoulderLeft,Vector2D(75,120))
+	,std::pair<JointType,Vector2D>(JointType_ElbowLeft,Vector2D(45,120))
+	,std::pair<JointType,Vector2D>(JointType_WristLeft,Vector2D(15,120))
+	//,std::pair<JointType,Vector2D>(JointType_HandLeft,Vector2D(105,200))
+	,std::pair<JointType,Vector2D>(JointType_ShoulderRight,Vector2D(135,120))
+	,std::pair<JointType,Vector2D>(JointType_ElbowRight,Vector2D(165,120))
+	,std::pair<JointType,Vector2D>(JointType_WristRight,Vector2D(195,120))
+	//,std::pair<JointType,Vector2D>(JointType_HandRight,Vector2D(105,200))
+	,std::pair<JointType,Vector2D>(JointType_HipLeft,Vector2D(75,200))
+	,std::pair<JointType,Vector2D>(JointType_KneeLeft,Vector2D(75,240))
+	,std::pair<JointType,Vector2D>(JointType_AnkleLeft,Vector2D(75,280))
+	//,std::pair<JointType,Vector2D>(JointType_FootLeft,Vector2D(75,280))
+	,std::pair<JointType,Vector2D>(JointType_HipRight,Vector2D(135,200))
+	,std::pair<JointType,Vector2D>(JointType_KneeRight,Vector2D(135,240))
+	,std::pair<JointType,Vector2D>(JointType_AnkleRight,Vector2D(135,280))
+	//,std::pair<JointType,Vector2D>(JointType_FootRight,Vector2D(75,200))
+	,std::pair<JointType,Vector2D>(JointType_SpineShoulder,Vector2D(105,120))
+	//,std::pair<JointType,Vector2D>(JointType_HandTipLeft,Vector2D(50,200))
+	//,std::pair<JointType,Vector2D>(JointType_ThumbLeft,Vector2D(50,200))
+	//,std::pair<JointType,Vector2D>(JointType_HandTipRight,Vector2D(50,200))
+	//,std::pair<JointType,Vector2D>(JointType_ThumbRight,Vector2D(50,200))
 };
-const int GraphDataBuilder::circleSize=5;
+const int GraphDataBuilder::circleSize=10;
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position)
 	:m_position(position),m_dataFactory(IDataFactory::CreateFactory(std::vector<JointType>(JointType_SpineBase))),m_inpFrame(0){}
@@ -99,11 +99,11 @@ int GraphDataBuilder::Update(){
 			}
 		}
 		//m_input‚Ì––”ö‚ªtype‚Éˆê’v‚¹‚¸A‚È‚¨‚©‚Âm_input‚Ì’†g‚ªÅ‘å’l(AngleDataFactory::indexNum)‚ğ’´‚¦‚Ä‚¢‚È‚¢ê‡’Ç‰Á‚·‚é
-		if(m_input.back()!=type && m_input.size()<AngleDataFactory::indexNum){
+		if(((m_input.size()==0) || (m_input.back()!=type && m_input.size()<AngleDataFactory::indexNum)) && type!=JointType_Count){
 			m_input.push_back(type);
 		}
 	} else{
-		if(m_inpFrame>0){
+		if(m_inpFrame>0 && !m_input.empty()){
 			//—£‚³‚ê‚½uŠÔ‚È‚çm_dataFactory‚ğXV‚·‚é
 			m_dataFactory=IDataFactory::CreateFactory(m_input);
 		}
@@ -120,7 +120,8 @@ int GraphDataBuilder::Update(){
 void GraphDataBuilder::Draw()const{
 	//ŠÖß‚ğ‘S‚Ä’†”²‚«‰~‚Å•`‰æ
 	for(const std::pair<JointType,Vector2D> &pair:relativeInputPos){
-		DrawCircle(pair.second.x,pair.second.y,circleSize,GetColor(0,255,0),FALSE);
+		const Vector2D v=m_position+pair.second;
+		DrawCircle(v.x,v.y,circleSize,GetColor(0,255,0),FALSE);
 	}
 	//born‚ğ•`‰æ
 	const std::map<JointType,Vector2D>::const_iterator ite=relativeInputPos.end();
@@ -128,11 +129,24 @@ void GraphDataBuilder::Draw()const{
 		//‘S‚Ä‚ÌŠÖß‚ğ•`‰æ‚·‚é‚í‚¯‚Å‚Í‚È‚¢‚Ì‚Å˜R‚ê‚ª‚ ‚éBfind()‚ğ—p‚¢‚éB
 		const std::map<JointType,Vector2D>::const_iterator fit=relativeInputPos.find(pair.first),sit=relativeInputPos.find(pair.second);
 		if(fit!=ite && sit!=ite){
-			DrawLine(fit->second.x,fit->second.y,sit->second.x,sit->second.y,GetColor(0,255,0),1);
+			const Vector2D fv=m_position+fit->second,sv=m_position+sit->second;
+			DrawLine(fv.x,fv.y,sv.x,sv.y,GetColor(0,255,0),1);
 		}
 	}
 	//Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚éŠÖß‚Ì‰~‚ğ‘S‚Ä“h‚è‚Â‚Ô‚·
 	if(m_dataFactory.get()!=nullptr){
-		m_dataFactory->Draw();
+		m_dataFactory->Draw(m_position);
 	}
+	//m_input‚Æ‚µ‚Ä‘I‘ğ‚³‚ê‚Ä‚¢‚éŠÖß‚Ì‰~‚ğ‘S‚Ä“h‚è‚Â‚Ô‚µŠÖß‚à‚Â‚È‚®
+	std::vector<Vector2D> inpPos;
+	//“h‚è‚Â‚Ô‚µ
+	for(size_t i=0,max=m_input.size();i<max;i++){
+		inpPos.push_back(relativeInputPos.find(m_input[i])->second+m_position);
+		DrawCircle(inpPos[i].x,inpPos[i].y,circleSize,GetColor(255,255,0));
+	}
+	//ü‚ğˆø‚­
+	for(size_t i=0,max=m_input.size();i+1<max;i++){
+		DrawLine(inpPos[i].x,inpPos[i].y,inpPos[i+1].x,inpPos[i+1].y,GetColor(255,0,0),1);
+	}
+
 }
