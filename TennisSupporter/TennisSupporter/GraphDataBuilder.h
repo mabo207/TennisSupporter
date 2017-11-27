@@ -59,8 +59,9 @@ protected:
 public:
 	GraphDataBuilder(Vector2D position);
 	~GraphDataBuilder();
-	int Update();
+	int Update();//マウス左ボタンを離した瞬間は1を返す
 	void Draw()const;
+	double CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const;
 };
 
 #endif // !DEF_GRAPHDATABUILDER_H

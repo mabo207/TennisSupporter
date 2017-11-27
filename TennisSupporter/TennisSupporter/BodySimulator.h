@@ -41,6 +41,7 @@ protected:
 protected:
 	int CalReadIndex()const;//m_playFrameから、m_playDataのどの番号のデータを読み込めば良いか計算する。
 	bool ReadFile(const char *filename);
+	void DataBuild();
 	void DataBuild(JointType jointtype);
 	void DataBuild(JointType edge,JointType point1,JointType point2);
 

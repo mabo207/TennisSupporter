@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include<cmath>
 #include"GraphDataBuilder.h"
 #include"DxLib.h"
 #include"input.h"
@@ -32,7 +34,7 @@ GraphDataBuilder::AngleDataFactory::AngleDataFactory(JointType point1,JointType 
 	:type{point1,point2,point3}{}
 
 double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
-	return data[type[1]].CalculateAngle(data[type[0]],data[type[2]]);
+	return data[type[1]].CalculateAngle(data[type[0]],data[type[2]])/M_PI*180;
 }
 
 void GraphDataBuilder::AngleDataFactory::Draw(Vector2D pos)const{
@@ -44,7 +46,7 @@ void GraphDataBuilder::AngleDataFactory::Draw(Vector2D pos)const{
 	}
 	//線を引く
 	for(size_t i=0;i<indexNum-1;i++){
-		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),1);
+		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),3);
 	}
 
 }
@@ -80,11 +82,12 @@ const std::map<JointType,Vector2D> GraphDataBuilder::relativeInputPos={
 const int GraphDataBuilder::circleSize=10;
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position)
-	:m_position(position),m_dataFactory(IDataFactory::CreateFactory(std::vector<JointType>(JointType_SpineBase))),m_inpFrame(0){}
+	:m_position(position),m_dataFactory(IDataFactory::CreateFactory(std::vector<JointType>{JointType_SpineBase})),m_inpFrame(0){}
 
 GraphDataBuilder::~GraphDataBuilder(){}
 
 int GraphDataBuilder::Update(){
+	int ret=0;
 	const int mFrame=mouse_get(MOUSE_INPUT_LEFT);
 	//マウスの入力判定
 	if(mFrame>0){
@@ -106,6 +109,7 @@ int GraphDataBuilder::Update(){
 		if(m_inpFrame>0 && !m_input.empty()){
 			//離された瞬間ならm_dataFactoryを更新する
 			m_dataFactory=IDataFactory::CreateFactory(m_input);
+			ret=1;
 		}
 		//マウス入力がされていないならm_inputを空に
 		m_input.clear();
@@ -114,7 +118,7 @@ int GraphDataBuilder::Update(){
 	//前フレームにおけるフレーム数の更新
 	m_inpFrame=mFrame;
 
-	return 0;
+	return ret;
 }
 
 void GraphDataBuilder::Draw()const{
@@ -149,4 +153,8 @@ void GraphDataBuilder::Draw()const{
 		DrawLine(inpPos[i].x,inpPos[i].y,inpPos[i+1].x,inpPos[i+1].y,GetColor(255,0,0),1);
 	}
 
+}
+
+double GraphDataBuilder::CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const{
+	return m_dataFactory->ICalData(playData);
 }

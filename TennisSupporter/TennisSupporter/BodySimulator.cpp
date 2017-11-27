@@ -111,10 +111,41 @@ bool BodySimulator::ReadFile(const char *filename){
 		return false;
 	}
 	//グラフについてのデータ読み取り
-	DataBuild(JointType_HipRight);
+	DataBuild();
 	//DataBuild(JointType_ShoulderRight,JointType_ElbowRight,JointType_SpineShoulder);
 
 	return true;
+}
+
+void BodySimulator::DataBuild(){
+	size_t playdatasize=m_playData.size();
+	m_data.clear();
+	m_data.reserve(playdatasize);
+	for(size_t i=0;i<playdatasize;i++){
+		double data=0.0;
+		for(size_t j=0,bodynum=m_playData[i].size();j<bodynum;j++){
+			bool flag=false;
+			for(size_t k=0,jointnum=m_playData[i][j].size();k<jointnum;k++){
+				if(!(m_playData[i][j][k]==BodyKinectSensor::JointPosition())){
+					flag=true;
+					break;
+				}
+			}
+			if(flag){
+				data=m_pGraphDataBuilder->CalData(m_playData[i][j]);
+				break;
+			}
+		}
+		m_data.push_back(data);
+		if(i!=0){
+			m_dataMin=std::fmin(m_dataMin,data);
+			m_dataMax=std::fmax(m_dataMax,data);
+		} else{
+			m_dataMin=data;
+			m_dataMax=data;
+		}
+	}
+	m_playFrame=0.0;
 }
 
 void BodySimulator::DataBuild(JointType jointtype){
@@ -145,6 +176,7 @@ void BodySimulator::DataBuild(JointType jointtype){
 			m_dataMax=data;
 		}
 	}
+	m_playFrame=0.0;
 }
 
 void BodySimulator::DataBuild(JointType edge,JointType point1,JointType point2){
@@ -175,6 +207,7 @@ void BodySimulator::DataBuild(JointType edge,JointType point1,JointType point2){
 			m_dataMax=data;
 		}
 	}
+	m_playFrame=0.0;
 }
 
 int BodySimulator::CalReadIndex()const{
@@ -229,7 +262,6 @@ int BodySimulator::Update(){
 			if(ReadFile(("SaveData/"+to_string_0d(0,3)+".txt").c_str())){
 				//読み込み成功時のみ、再生モードへ
 				m_mode=1;
-				m_playFrame=0.0;
 			}
 		}
 		break;
@@ -257,7 +289,10 @@ int BodySimulator::Update(){
 			m_mode=0;
 		}
 		//入力インターフェース
-		m_pGraphDataBuilder->Update();
+		if(m_pGraphDataBuilder->Update()==1){
+			//m_dataFactoryを更新した時はDataBuild()を使用する
+			DataBuild();
+		}
 		break;
 	}
 	//全モード共通処理
@@ -306,7 +341,7 @@ void BodySimulator::Draw()const{
 			if(CalReadIndex()>=0 && CalReadIndex()<(int)m_data.size()){
 				//配列外参照をする可能性があるので弾く。配列外参照時は描画しない。
 				int dataY=graphPos.y+(int)(graphHeight/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[CalReadIndex()]));
-				DrawLine(graphPos.x,dataY,graphPos.x+writeCountMax,dataY,GetColor(0,0,255),1);
+				DrawLine(graphPos.x,dataY,graphPos.x+writeCountMax,dataY,GetColor(128,128,128),1);
 			}
 			//data最大値の表示
 			DrawLine(graphPos.x,graphPos.y,graphPos.x+writeCountMax,graphPos.y,GetColor(128,128,128),1);
