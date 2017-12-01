@@ -68,6 +68,11 @@ BodyKinectSensor::JointPosition::JointPosition(const std::string &str){
 	}
 }
 
+//==の実装
+bool BodyKinectSensor::JointPosition::operator==(const JointPosition &otherobj)const{
+	return (this->X==otherobj.X && this->Y==otherobj.Y && this->X==otherobj.X);
+}
+
 //"(X,Y,Z)"という文字列を出力する
 std::string BodyKinectSensor::JointPosition::GetString()const{
 	return "("+std::to_string(X)+","+std::to_string(Y)+","+std::to_string(Z)+")";
@@ -159,15 +164,7 @@ bool BodyKinectSensor::BodyIndexSignificance(size_t bodyIndex)const{
 	//本処理
 	bool flag=false;
 	for(size_t i=0;i<JointType_Count;i++){
-		if(m_jointPositions[bodyIndex][i].X!=0.0){
-			flag=true;
-			break;
-		}
-		if(m_jointPositions[bodyIndex][i].Y!=0.0){
-			flag=true;
-			break;
-		}
-		if(m_jointPositions[bodyIndex][i].Z!=0.0){
+		if(!(m_jointPositions[bodyIndex][i]==JointPosition())){
 			flag=true;
 			break;
 		}
@@ -192,6 +189,31 @@ void BodyKinectSensor::OutputJointPoitions(std::ofstream &writeFile)const{
 		for(int j=0;j<bodyNum;j++){
 			for(int i=0;i<JointType_Count;i++){
 				writeFile<<m_jointPositions[j][i].GetString();
+			}
+		}
+		writeFile<<std::endl;//1フレーム内の全ての出力が終了したので改行を出力
+	}
+
+}
+
+void BodyKinectSensor::OutputJointPoitions(std::ofstream &writeFile,const std::vector<std::vector<JointPosition>> &frameData)const{
+	if(!(!writeFile)){
+		//body位置の出力
+		//形式は1行につき、1フレームでのjointPositions[i][j]の各要素を(X,Y,Z)という形式にして出力。
+		for(size_t i=0,topsize=frameData.size();i<bodyNum;i++){
+			//配列の大きさを記録
+			size_t secondsize=0;
+			if(i<topsize){
+				secondsize=frameData[i].size();
+			}
+			//格納
+			for(size_t j=0;j<JointType_Count;j++){
+				if(i<topsize && j<secondsize){
+					writeFile<<frameData[i][j].GetString();
+				} else{
+					//frameDataの配列外参照が起こる時はゴミデータを格納
+					writeFile<<JointPosition().GetString();
+				}
 			}
 		}
 		writeFile<<std::endl;//1フレーム内の全ての出力が終了したので改行を出力
@@ -273,6 +295,26 @@ int BodyKinectSensor::Update(std::ifstream &readFile){
 	} else{
 		return 0;
 	}
+}
+
+int BodyKinectSensor::Update(const std::vector<std::vector<JointPosition>> &frameData){
+	for(size_t i=0,topsize=frameData.size();i<bodyNum;i++){
+		//配列の大きさを記録
+		size_t secondsize=0;
+		if(i<topsize){
+			secondsize=frameData[i].size();
+		}
+		//格納
+		for(size_t j=0;j<JointType_Count;j++){
+			if(i<topsize && j<secondsize){
+				m_jointPositions[i][j]=frameData[i][j];
+			} else{
+				//frameDataの配列外参照が起こる時はゴミデータを格納
+				m_jointPositions[i][j]=JointPosition();
+			}
+		}
+	}
+	return 0;
 }
 
 void BodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const{

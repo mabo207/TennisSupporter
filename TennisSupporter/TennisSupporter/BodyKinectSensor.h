@@ -22,6 +22,8 @@ public:
 		JointPosition(_CameraSpacePoint pos);
 		//"(X,Y,Z)"という形式の文字列を読み取って初期化する
 		JointPosition(const std::string &str);
+		//==の実装
+		bool operator==(const JointPosition &otherobj)const;
 		//"(X,Y,Z)"という文字列を出力する
 		std::string GetString()const;
 		//_CameraSpacePointを作成
@@ -36,7 +38,7 @@ public:
 	};
 	
 	//定数
-protected:
+public:
 	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;
 	static const size_t bodyNum=6;
 
@@ -53,8 +55,10 @@ public:
 	BodyKinectSensor(IKinectSensor *pSensor);
 	~BodyKinectSensor();
 	void OutputJointPoitions(std::ofstream &writeFile)const;//writeFileに現在のjointPositionsを1行で出力する
+	void OutputJointPoitions(std::ofstream &writeFile,const std::vector<std::vector<JointPosition>> &frameData)const;//writeFileに引数のデータから読み取れるjointPositionsを1行で出力する
 	int Update();//kinectから情報を取得し更新する
 	int Update(std::ifstream &readFile);//テキストデータから情報を１行分取得し更新する
+	int Update(const std::vector<std::vector<JointPosition>> &frameData);//読み込み済みデータを用いて更新する
 	void Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const;
 	//情報取得のために用いる
 	JointPosition GetJointPosition(_JointType jointType)const;//１番最初に見えるbodyを自動判定して実行
