@@ -13,6 +13,8 @@ class BodySimulator{
 	static const int captureFps;//撮影データのfps
 	static const int drawFps;//描画時のfps
 	static const Vector2D kinectSize;//KinectV2の取得可能な画像サイズ（body,depth）
+	static const Vector2D graphPos,graphSize;//グラフの位置と大きさ
+
 
 	//変数
 protected:
@@ -29,22 +31,23 @@ protected:
 
 	//記録した物を再生する際に用いるデータ
 	double m_playFrame;//今何フレーム目を再生しているか
-	std::ifstream m_readFile;//再生データの読み込み先
 	double m_playRate;//再生速度
 	std::vector<std::vector<std::vector<BodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。
 	std::vector<double> m_data;//グラフ化するデータ
 	double m_dataMin,m_dataMax;//m_dataの最大値最小値
-	int m_font;//グラフに表示する文字のfont
 	std::shared_ptr<GraphDataBuilder> m_pGraphDataBuilder;//データ化の更新を管理する
+	bool m_playFlag;//再生を行うかどうか
+
+	int m_font;//グラフに表示する文字のfont
 
 	//関数
 protected:
 	int CalReadIndex()const;//m_playFrameから、m_playDataのどの番号のデータを読み込めば良いか計算する。
+	double CalPlayFrame(int index)const;//CalReadIndexの逆算
 	bool ReadFile(const char *filename);
 	void DataBuild();
-	void DataBuild(JointType jointtype);
-	void DataBuild(JointType edge,JointType point1,JointType point2);
-
+	bool JudgeMouseInGraph()const;
+	
 public:
 	BodySimulator();
 	~BodySimulator();

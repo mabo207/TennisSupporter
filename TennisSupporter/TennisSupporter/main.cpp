@@ -683,7 +683,7 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
 		//ウインドウサイズの変更
 		SetWindowSizeExtendRate(0.5);
 		//ウインドウサイズの変更をできるようにする
-		SetWindowSizeChangeEnableFlag(FALSE);
+		SetWindowSizeChangeEnableFlag(TRUE);
 		//アイコンの設定
 		SetWindowIconID(101);
 
