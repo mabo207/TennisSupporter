@@ -55,6 +55,7 @@ public:
 	BodyKinectSensor(IKinectSensor *pSensor);
 	~BodyKinectSensor();
 	void OutputJointPoitions(std::ofstream &writeFile)const;//writeFileに現在のjointPositionsを1行で出力する
+	void OutputJointPoitions(std::ofstream &writeFile,const std::vector<std::vector<JointPosition>> &frameData)const;//writeFileに引数のデータから読み取れるjointPositionsを1行で出力する
 	int Update();//kinectから情報を取得し更新する
 	int Update(std::ifstream &readFile);//テキストデータから情報を１行分取得し更新する
 	int Update(const std::vector<std::vector<JointPosition>> &frameData);//読み込み済みデータを用いて更新する

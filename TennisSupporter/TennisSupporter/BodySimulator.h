@@ -14,7 +14,7 @@ class BodySimulator{
 	static const int drawFps;//描画時のfps
 	static const Vector2D kinectSize;//KinectV2の取得可能な画像サイズ（body,depth）
 	static const Vector2D graphPos,graphSize;//グラフの位置と大きさ
-
+	static const std::string sectionStr;//sectionデータ書き出しの際のsectionの区切り文字列
 
 	//変数
 protected:
@@ -30,6 +30,7 @@ protected:
 	int m_writeCount;//書き込んでいる時間の計測
 
 	//記録した物を再生する際に用いるデータ
+	std::string m_playDataName;//再生しているデータのファイル名(拡張子を除く)
 	double m_playFrame;//今何フレーム目を再生しているか
 	double m_playRate;//再生速度
 	std::vector<std::vector<std::vector<BodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。
@@ -37,6 +38,9 @@ protected:
 	double m_dataMin,m_dataMax;//m_dataの最大値最小値
 	std::shared_ptr<GraphDataBuilder> m_pGraphDataBuilder;//データ化の更新を管理する
 	bool m_playFlag;//再生を行うかどうか
+	std::vector<std::pair<int,int>> m_section;//グラフデータの切り取り区間
+	int m_beforeRClickFrame;//直前フレームにおける右クリックフレーム数
+	int m_startSectionIndex;//切り取り区間保持開始の際のフレーム数
 
 	int m_font;//グラフに表示する文字のfont
 
@@ -47,6 +51,8 @@ protected:
 	bool ReadFile(const char *filename);
 	void DataBuild();
 	bool JudgeMouseInGraph()const;
+	void UpdateImage();
+	void WriteSections();//m_sectionに当てはまるデータを全て書き出す
 	
 public:
 	BodySimulator();

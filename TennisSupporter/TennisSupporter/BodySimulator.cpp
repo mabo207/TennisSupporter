@@ -12,10 +12,11 @@ const int BodySimulator::drawFps=60;
 const Vector2D BodySimulator::kinectSize=Vector2D(512,424);
 const Vector2D BodySimulator::graphPos=Vector2D(100,60);
 const Vector2D BodySimulator::graphSize=Vector2D(BodySimulator::writeCountMax,360);
+const std::string BodySimulator::sectionStr="##################";
 
 BodySimulator::BodySimulator()
 	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFrame(0.0),m_playRate(1.0),m_dataMin(300),m_dataMax(-300),
-	m_font(CreateFontToHandle("メイリオ",12,1,-1)),m_playFlag(true)
+	m_font(CreateFontToHandle("メイリオ",12,1,-1)),m_playFlag(true),m_beforeRClickFrame(0),m_startSectionIndex(0)
 {
 	//センサーの起動
 	m_pSensor=nullptr;
@@ -112,8 +113,25 @@ bool BodySimulator::ReadFile(const char *filename){
 	DataBuild();
 	readFile.close();
 
+	//ファイル名を拡張子以外保存
+	std::string fname(filename);
+	size_t index=0;
+	for(size_t size=fname.size();index<size;index++){
+		if(fname[index]=='.'){
+			break;
+		}
+	}
+	m_playDataName.clear();
+	m_playDataName.reserve(index);
+	for(size_t i=0;i<index;i++){
+		m_playDataName.push_back(fname[i]);
+	}
+
 	//再生データの初期化
 	m_playFlag=true;
+	m_section.clear();
+	m_beforeRClickFrame=0;
+	m_startSectionIndex=0;
 
 	return true;
 }
@@ -146,7 +164,9 @@ void BodySimulator::DataBuild(){
 			m_dataMax=data;
 		}
 	}
+	//フレーム数を初期化、イメージも更新
 	m_playFrame=0.0;
+	UpdateImage();
 }
 
 int BodySimulator::CalReadIndex()const{
@@ -160,6 +180,45 @@ double BodySimulator::CalPlayFrame(int index)const{
 bool BodySimulator::JudgeMouseInGraph()const{
 	Vector2D relativeMouse=GetMousePointVector2D()-graphPos;
 	return (relativeMouse.x>=0 && relativeMouse.x<=graphSize.x && relativeMouse.y>=0 && relativeMouse.y<=graphSize.y);
+}
+
+void BodySimulator::UpdateImage(){
+	if(m_mode==1){
+		int index=CalReadIndex();
+		if(index>=0 && index<(int)m_playData.size()){
+			m_pBodyKinectSensor->Update(m_playData[index]);
+		}
+	}
+}
+
+void BodySimulator::WriteSections(){
+	//保存先ファイル名作成
+	const std::string filename=m_playDataName+"_section.txt";
+	//ファイルを開く
+	std::ofstream ofs(filename.c_str(),std::ios_base::trunc);
+	if(!ofs){
+		return;
+	}
+	//ファイルに書き出し
+	int playdatasize=(int)m_playData.size();
+	for(const std::pair<int,int> &pair:m_section){
+		//開始と末尾を算出
+		int top=std::fmin(pair.first,pair.second);
+		int bottom=std::fmax(pair.first,pair.second);
+		//書き出し
+		if(top>=0 && bottom<playdatasize){
+			//区切り文字列と改行の書き出し
+			ofs<<sectionStr<<std::endl;
+			//1フレームずつ書き出し
+			for(int i=top;i<=bottom;i++){
+				m_pBodyKinectSensor->OutputJointPoitions(ofs,m_playData[i]);
+			}
+		}
+	}
+	ofs.close();
+
+	//書き出し終了が分かるように再生を始める
+	m_playFlag=true;
 }
 
 int BodySimulator::Update(){
@@ -218,31 +277,63 @@ int BodySimulator::Update(){
 		printfDx("PlayingDataMode\n");
 		//秒数更新
 		if(mouse_get(MOUSE_INPUT_LEFT)>0 && JudgeMouseInGraph()){
-			//グラフ内で左クリック時、再生時間をそこに合わせる
+			//グラフ内で左クリック時、再生時間をそこに合わせて、イメージ更新
 			m_playFrame=CalPlayFrame((GetMousePointVector2D().x-graphPos.x)*writeCountMax/graphSize.x);
+			UpdateImage();
 		} else if(keyboard_get(KEY_INPUT_NUMPADENTER)==1){
-			//Enterキー入力で先頭から再生
+			//Enterキー入力で先頭から再生し、イメージ更新
 			m_playFrame=0.0;
+			UpdateImage();
 		} else if(keyboard_get(KEY_INPUT_RSHIFT)==1){
 			//右シフトキー入力で再生停止の切り替え
 			m_playFlag=!m_playFlag;
+		} else if(keyboard_get(KEY_INPUT_LEFT)==1){
+			//左キー入力で再生位置を戻し、イメージ更新
+			m_playFrame-=m_playRate;
+			UpdateImage();
+		} else if(keyboard_get(KEY_INPUT_RIGHT)==1){
+			//右キー入力で再生位置を進め、イメージ更新
+			m_playFrame+=m_playRate;
+			UpdateImage();
 		}
 		//イメージ再生画面
-		int a=CalReadIndex();
-		if(m_playFlag && a<(int)m_playData.size()){
-			//まだデータ終端までいっておらず、かつ再生モードになっている時、フレーム数を更新
-			m_playFrame+=m_playRate;
-		}
-		int b=CalReadIndex();//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
-		if(a!=b){
-			if(b<(int)m_playData.size()){
-				m_pBodyKinectSensor->Update(m_playData[b]);
+		if(mouse_get(MOUSE_INPUT_RIGHT)<=0){
+			//右クリックが押されていない場合は普通に再生
+			int a=CalReadIndex();
+			if(m_playFlag && a<(int)m_playData.size()){
+				//まだデータ終端までいっておらず、かつ再生モードになっている時、フレーム数を更新
+				m_playFrame+=m_playRate;
 			}
+			int b=CalReadIndex();//この値がaに一致している時は読み込みは行わず、前フレームと同じ画像を描画する
+			if(a!=b){
+				UpdateImage();
+			}
+		} else{
+			//右クリックが押されている場合は、マウスの位置に従ってイメージを更新
+			size_t index=(size_t)(std::fmin(m_playData.size()-1,(size_t)(std::fmax(0,GetMousePointVector2D().x-graphPos.x))));
+			m_pBodyKinectSensor->Update(m_playData[index]);
 		}
 		//入力インターフェース
 		if(m_pGraphDataBuilder->Update()==1){
 			//m_dataFactoryを更新した時はDataBuild()を使用する
 			DataBuild();
+		}
+		//グラフデータ切り取り操作
+		int rframe=mouse_get(MOUSE_INPUT_RIGHT);
+		if(rframe==1){
+			//右クリック開始
+			m_startSectionIndex=CalReadIndex();//開始indexの保存
+		} else if(rframe==0 && m_beforeRClickFrame>0){
+			//右クリックを離した直後
+			Vector2D mousePos=GetMousePointVector2D();
+			if(JudgeMouseInGraph()){
+				m_section.push_back(std::pair<int,int>(m_startSectionIndex,(mousePos-graphPos).x*writeCountMax/graphSize.x));//区間の保存
+			}
+		}
+		m_beforeRClickFrame=rframe;
+		//セクションデータ出力操作
+		if(keyboard_get(KEY_INPUT_S)==10){
+			WriteSections();
 		}
 		//場面遷移
 		if(keyboard_get(KEY_INPUT_BACK)==1){
@@ -285,6 +376,15 @@ void BodySimulator::Draw()const{
 		m_pBodyKinectSensor->Draw(m_pSensor,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
 		//グラフ描画
 		{
+			//現在存在している区間の表示
+			for(const std::pair<int,int> &section:m_section){
+				DrawBox(graphPos.x+section.first,graphPos.y,graphPos.x+section.second,graphPos.y+graphSize.y,GetColor(128,128,255),TRUE);
+			}
+			//現在作っている区間の表示
+			if(mouse_get(MOUSE_INPUT_RIGHT)>1){
+				DrawBox(graphPos.x+m_startSectionIndex,graphPos.y,GetMousePointVector2D().x,graphPos.y+graphSize.y,GetColor(255,255,0),TRUE);
+			}
+
 			//折れ線の描画
 			for(size_t i=0,datanum=m_data.size();i<datanum;i++){
 				DrawPixel(graphPos.x+i,graphPos.y+(int)(graphSize.y/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[i])),GetColor(128,255,255));
