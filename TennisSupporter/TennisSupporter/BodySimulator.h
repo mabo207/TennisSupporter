@@ -41,6 +41,7 @@ protected:
 	std::vector<std::pair<int,int>> m_section;//グラフデータの切り取り区間
 	int m_beforeRClickFrame;//直前フレームにおける右クリックフレーム数
 	int m_startSectionIndex;//切り取り区間保持開始の際のフレーム数
+	bool m_graphUnity;//グラフの縦横軸の基準を統一するか
 
 	int m_font;//グラフに表示する文字のfont
 

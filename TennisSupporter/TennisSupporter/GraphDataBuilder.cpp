@@ -21,7 +21,15 @@ std::shared_ptr<GraphDataBuilder::IDataFactory> GraphDataBuilder::IDataFactory::
 GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type):type(i_type){}
 
 double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
-	return data[type].Z;
+	return data[type].Y;
+}
+
+double GraphDataBuilder::PosDataFactory::DataMax()const{
+	return 8.000*std::tan(M_PI/6);
+}
+
+double GraphDataBuilder::PosDataFactory::DataMin()const{
+	return -8.000*std::tan(M_PI/6);
 }
 
 void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
@@ -35,6 +43,14 @@ GraphDataBuilder::AngleDataFactory::AngleDataFactory(JointType point1,JointType 
 
 double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
 	return data[type[1]].CalculateAngle(data[type[0]],data[type[2]])/M_PI*180;
+}
+
+double GraphDataBuilder::AngleDataFactory::DataMax()const{
+	return 180.0;
+}
+
+double GraphDataBuilder::AngleDataFactory::DataMin()const{
+	return 0.0;
 }
 
 void GraphDataBuilder::AngleDataFactory::Draw(Vector2D pos)const{
@@ -157,4 +173,12 @@ void GraphDataBuilder::Draw()const{
 
 double GraphDataBuilder::CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const{
 	return m_dataFactory->ICalData(playData);
+}
+
+double GraphDataBuilder::DataMax()const{
+	return m_dataFactory->DataMax();
+}
+
+double GraphDataBuilder::DataMin()const{
+	return m_dataFactory->DataMin();
 }

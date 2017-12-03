@@ -14,6 +14,8 @@ class GraphDataBuilder{
 		//関数
 		virtual double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const=0;
 		virtual void Draw(Vector2D pos)const=0;
+		virtual double DataMax()const=0;
+		virtual double DataMin()const=0;
 		//静的関数
 		static std::shared_ptr<IDataFactory> CreateFactory(const std::vector<JointType> &input);
 	};
@@ -24,6 +26,8 @@ class GraphDataBuilder{
 		//関数
 		PosDataFactory(JointType i_type);
 		double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const;
+		double DataMax()const;
+		double DataMin()const;
 		void Draw(Vector2D pos)const;
 	};
 	//角度に対して用いるクラス
@@ -35,6 +39,8 @@ class GraphDataBuilder{
 		//関数
 		AngleDataFactory(JointType point1,JointType point2,JointType point3);
 		double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const;
+		double DataMax()const;
+		double DataMin()const;
 		void Draw(Vector2D pos)const;
 	};
 
@@ -62,6 +68,8 @@ public:
 	int Update();//マウス左ボタンを離した瞬間は1を返す
 	void Draw()const;
 	double CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const;
+	double DataMax()const;
+	double DataMin()const;
 };
 
 #endif // !DEF_GRAPHDATABUILDER_H

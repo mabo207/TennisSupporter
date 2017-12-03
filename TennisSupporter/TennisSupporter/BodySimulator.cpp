@@ -16,7 +16,7 @@ const std::string BodySimulator::sectionStr="##################";
 
 BodySimulator::BodySimulator()
 	:m_fileWriteFlag(false),m_writeCount(0),m_mode(0),m_playFrame(0.0),m_playRate(1.0),m_dataMin(300),m_dataMax(-300),
-	m_font(CreateFontToHandle("メイリオ",12,1,-1)),m_playFlag(true),m_beforeRClickFrame(0),m_startSectionIndex(0)
+	m_font(CreateFontToHandle("メイリオ",12,1,-1)),m_playFlag(true),m_beforeRClickFrame(0),m_startSectionIndex(0),m_graphUnity(false)
 {
 	//センサーの起動
 	m_pSensor=nullptr;
@@ -320,10 +320,10 @@ int BodySimulator::Update(){
 		}
 		//グラフデータ切り取り操作
 		int rframe=mouse_get(MOUSE_INPUT_RIGHT);
-		if(rframe==1){
+		if(rframe==1 && !m_graphUnity){
 			//右クリック開始
 			m_startSectionIndex=CalReadIndex();//開始indexの保存
-		} else if(rframe==0 && m_beforeRClickFrame>0){
+		} else if(rframe==0 && m_beforeRClickFrame>0 && !m_graphUnity){
 			//右クリックを離した直後
 			Vector2D mousePos=GetMousePointVector2D();
 			if(JudgeMouseInGraph()){
@@ -334,6 +334,10 @@ int BodySimulator::Update(){
 		//セクションデータ出力操作
 		if(keyboard_get(KEY_INPUT_S)==10){
 			WriteSections();
+		}
+		//グラフの軸基準の切り替え
+		if(keyboard_get(KEY_INPUT_U)==1){
+			m_graphUnity=!m_graphUnity;
 		}
 		//場面遷移
 		if(keyboard_get(KEY_INPUT_BACK)==1){
@@ -375,7 +379,44 @@ void BodySimulator::Draw()const{
 		//再生時
 		m_pBodyKinectSensor->Draw(m_pSensor,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
 		//グラフ描画
-		{
+		if(m_graphUnity){
+			//統一基準(1pxにつき1フレームという基準が消滅する)
+			//最大最小値の設定
+			const double dataTop=m_pGraphDataBuilder->DataMax(),dataBottom=m_pGraphDataBuilder->DataMin();
+			//1フレームに対するピクセル数の計算
+			const double frameRateToPixel=((double)writeCountMax)/m_data.size();
+			//現在存在している区間の表示
+			for(const std::pair<int,int> &section:m_section){
+				DrawBox(graphPos.x+(int)(section.first*frameRateToPixel),graphPos.y,graphPos.x+(int)(section.second*frameRateToPixel),graphPos.y+graphSize.y,GetColor(128,128,255),TRUE);
+			}
+			//現在作っている区間の表示
+			if(mouse_get(MOUSE_INPUT_RIGHT)>1){
+				DrawBox(graphPos.x+(int)(m_startSectionIndex*frameRateToPixel),graphPos.y,GetMousePointVector2D().x,graphPos.y+graphSize.y,GetColor(255,255,0),TRUE);
+			}
+
+			//折れ線の描画
+			for(size_t i=0,datanum=m_data.size();i<datanum;i++){
+				DrawCircle(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[i])),1,GetColor(128,255,255),TRUE);
+			}
+			for(size_t i=0,datanum=m_data.size();i+1<datanum;i++){
+				DrawLine(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[i])),graphPos.x+(int)((i+1)*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[i+1])),GetColor(128,128,255),1);
+			}
+			//再生時間の描画
+			DrawLine(graphPos.x+(int)(CalReadIndex()*frameRateToPixel),graphPos.y,graphPos.x+(int)(CalReadIndex()*frameRateToPixel),graphPos.y+graphSize.y,GetColor(128,128,128),1);
+			//現在の値の表示
+			if(CalReadIndex()>=0 && CalReadIndex()<(int)m_data.size()){
+				//配列外参照をする可能性があるので弾く。配列外参照時は描画しない。
+				int dataY=graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[CalReadIndex()]));
+				DrawLine(graphPos.x,dataY,graphPos.x+graphSize.x,dataY,GetColor(128,128,128),1);
+			}
+			//data最大値の表示
+			DrawLine(graphPos.x,graphPos.y,graphPos.x+graphSize.x,graphPos.y,GetColor(128,128,128),1);
+			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y,std::to_string(dataTop),GetColor(255,255,255),m_font);
+			//data最小値の表示
+			DrawLine(graphPos.x,graphPos.y+graphSize.y,graphPos.x+graphSize.x,graphPos.y+graphSize.y,GetColor(128,128,128),1);
+			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y+graphSize.y,std::to_string(dataBottom),GetColor(255,255,255),m_font);
+		} else{
+			//データ依存の基準
 			//現在存在している区間の表示
 			for(const std::pair<int,int> &section:m_section){
 				DrawBox(graphPos.x+section.first,graphPos.y,graphPos.x+section.second,graphPos.y+graphSize.y,GetColor(128,128,255),TRUE);
@@ -404,9 +445,9 @@ void BodySimulator::Draw()const{
 			DrawLine(graphPos.x,graphPos.y+graphSize.y,graphPos.x+graphSize.x,graphPos.y+graphSize.y,GetColor(128,128,128),1);
 			DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y+graphSize.y,std::to_string(m_dataMin),GetColor(255,255,255),m_font);
 			
-			//読み込みデータインターフェースの描画
-			m_pGraphDataBuilder->Draw();
 		}
+		//読み込みデータインターフェースの描画
+		m_pGraphDataBuilder->Draw();
 		break;
 	}
 	
