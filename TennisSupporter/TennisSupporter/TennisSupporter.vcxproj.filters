@@ -19,6 +19,12 @@
     <Filter Include="ソース ファイル\IBodyKinectSensor">
       <UniqueIdentifier>{cee1cd75-7834-4e87-93e1-2656297f396f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\BodySimulator">
+      <UniqueIdentifier>{1e915ef7-f4fe-4358-91ef-529c90b17af2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\BodySimulator">
+      <UniqueIdentifier>{78bf90cf-aa6e-4a1c-bc51-cf0a11fc3cf7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -31,9 +37,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="KinectTools.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="BodySimulator.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="DepthKinectSensor.cpp">
@@ -51,6 +54,18 @@
     <ClCompile Include="BodyVirtualKinectSensor.cpp">
       <Filter>ソース ファイル\IBodyKinectSensor</Filter>
     </ClCompile>
+    <ClCompile Include="BodySimulator.cpp">
+      <Filter>ソース ファイル\BodySimulator</Filter>
+    </ClCompile>
+    <ClCompile Include="BodyPhotographer.cpp">
+      <Filter>ソース ファイル\BodySimulator</Filter>
+    </ClCompile>
+    <ClCompile Include="BodyDataPlayer.cpp">
+      <Filter>ソース ファイル\BodySimulator</Filter>
+    </ClCompile>
+    <ClCompile Include="IBodySimulateScene.cpp">
+      <Filter>ソース ファイル\BodySimulator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="input.h">
@@ -60,9 +75,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="KinectTools.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BodySimulator.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="DepthKinectSensor.h">
@@ -79,6 +91,18 @@
     </ClInclude>
     <ClInclude Include="BodyVirtualKinectSensor.h">
       <Filter>ヘッダー ファイル\IBodyKinectSensor</Filter>
+    </ClInclude>
+    <ClInclude Include="BodySimulator.h">
+      <Filter>ヘッダー ファイル\BodySimulator</Filter>
+    </ClInclude>
+    <ClInclude Include="BodyPhotographer.h">
+      <Filter>ヘッダー ファイル\BodySimulator</Filter>
+    </ClInclude>
+    <ClInclude Include="BodyDataPlayer.h">
+      <Filter>ヘッダー ファイル\BodySimulator</Filter>
+    </ClInclude>
+    <ClInclude Include="IBodySimulateScene.h">
+      <Filter>ヘッダー ファイル\BodySimulator</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

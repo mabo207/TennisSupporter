@@ -2,7 +2,9 @@
 #include"DxLib.h"
 
 //-------------------BodyKinectSensor-------------------
-BodyKinectSensor::BodyKinectSensor(IKinectSensor *pSensor){
+BodyKinectSensor::BodyKinectSensor(IKinectSensor *pSensor)
+	:IBodyKinectSensor()
+{
 	//source
 	IBodyFrameSource *pBodySource;
 	ErrorCheck(pSensor->get_BodyFrameSource(&pBodySource),"You can't get source.");

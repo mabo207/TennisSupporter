@@ -5,8 +5,61 @@
 #include"DxLib.h"
 #include"input.h"
 
+#include"BodyDataPlayer.h"
+#include"BodyPhotographer.h"
+
 //-----------------BodySimulator-----------------
-const int BodySimulator::writeCountMax=30*30;
+BodySimulator::BodySimulator()
+	:m_font(CreateFontToHandle("メイリオ",12,1,-1))
+{
+	//センサーの起動
+	m_pSensor=nullptr;
+	ErrorCheck(GetDefaultKinectSensor(&m_pSensor),"You can't get Kinect Sensor.");
+	ErrorCheck(m_pSensor->Open(),"You can't activate Kinect Sensor.");
+	BOOLEAN isOpen=false;
+	ErrorCheck(m_pSensor->get_IsOpen(&isOpen),"Kinect is not open.");
+	//m_pSceneの初期化
+	m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
+}
+
+BodySimulator::~BodySimulator(){
+	//センサーの解放
+	m_pSensor->Close();
+	m_pSensor->Release();
+	//フォントの解放
+	DeleteFontToHandle(m_font);
+}
+
+int BodySimulator::Update(){
+	//更新作業
+	int index=m_pScene->Update();
+	//状態遷移
+	switch(m_pScene->GetType()){
+	case(IBodySimulateScene::MODE::PHOTOGRAPHER):
+		if(index==1){
+			//場面を再生モードに変更
+			m_pScene=std::shared_ptr<IBodySimulateScene>(
+				new BodyDataPlayer(
+					m_font
+					,("SaveData/"+to_string_0d(0,3)+".txt").c_str()));
+		}
+		break;
+	case(IBodySimulateScene::MODE::PLAYER):
+		if(index==1){
+			//場面を録画モードに変更
+			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
+		}
+		break;
+	}
+
+	return 0;
+}
+
+void BodySimulator::Draw()const{
+	m_pScene->Draw();
+}
+
+/*const int BodySimulator::writeCountMax=30*30;
 const int BodySimulator::captureFps=30;
 const int BodySimulator::drawFps=60;
 const Vector2D BodySimulator::kinectSize=Vector2D(512,424);
@@ -377,7 +430,7 @@ void BodySimulator::Draw()const{
 		break;
 	case(1):
 		//再生時
-		m_pBodyKinectSensor->Draw(m_pSensor,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
+		m_pBodyKinectSensor->Draw(nullptr,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
 		//グラフ描画
 		if(m_graphUnity){
 			//統一基準(1pxにつき1フレームという基準が消滅する)
@@ -452,3 +505,4 @@ void BodySimulator::Draw()const{
 	}
 	
 }
+//*/

@@ -200,16 +200,18 @@ void IBodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D d
 		Vector2D jointsZY[JointType::JointType_Count];//関節のzy画像描画位置
 		for(size_t i=0;i<JointType::JointType_Count;i++){
 			//depth画像に入れる関節の位置:jointsPos
-			try{
-				ICoordinateMapper *mapper;
-				ErrorCheck(pSensor->get_CoordinateMapper(&mapper),"mapper failed\n");
-				DepthSpacePoint point;//opencv系の座標。すなわちdxlibと同じ。
-									  //mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
-				mapper->MapCameraPointToDepthSpace(m_jointPositions[j][i].GetCameraSpacePoint(),&point);
-				jointsPos[i]=Vector2D(depthSize.x-(int)point.X,(int)point.Y);//鏡像なので反転して取得。左上からの相対位置
-				jointsPos[i]=jointsPos[i]+(depthPos-depthSize/2);
-			} catch(const std::exception &e){
-				printfDx(e.what());
+			if(pSensor!=nullptr){
+				try{
+					ICoordinateMapper *mapper;
+					ErrorCheck(pSensor->get_CoordinateMapper(&mapper),"mapper failed\n");
+					DepthSpacePoint point;//opencv系の座標。すなわちdxlibと同じ。
+										  //mapper->MapCameraPointToDepthSpace(joints[i].Position,&point);
+					mapper->MapCameraPointToDepthSpace(m_jointPositions[j][i].GetCameraSpacePoint(),&point);
+					jointsPos[i]=Vector2D(depthSize.x-(int)point.X,(int)point.Y);//鏡像なので反転して取得。左上からの相対位置
+					jointsPos[i]=jointsPos[i]+(depthPos-depthSize/2);
+				} catch(const std::exception &e){
+					printfDx(e.what());
+				}
 			}
 			//xy画像・zy画像に入れる関節の位置:jointsXY,jointsZY
 			const double hAngle=70.0,vAngle=60.0;
@@ -229,15 +231,19 @@ void IBodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D d
 		}
 		//各関節の描画
 		for(size_t i=0;i<JointType::JointType_Count;i++){
-			DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,GetColor(0,255,0),FALSE);//depth画像
+			if(pSensor!=nullptr){
+				DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,GetColor(0,255,0),FALSE);//depth画像
+			}
 			DrawCircle(jointsXY[i].x,jointsXY[i].y,circlesize,GetColor(0,255,0),FALSE);//xy画像
 			DrawCircle(jointsZY[i].x,jointsZY[i].y,circlesize,GetColor(0,255,0),FALSE);//zy座標
 		}
 		//各ボーンの描画
 		for(const auto &pair:bonePairs){
 			//depth画像
-			Vector2D pos[2]={jointsPos[pair.first],jointsPos[pair.second]};
-			DrawLine(pos[0].x,pos[0].y,pos[1].x,pos[1].y,GetColor(255,0,0),1);
+			if(pSensor!=nullptr){
+				Vector2D pos[2]={jointsPos[pair.first],jointsPos[pair.second]};
+				DrawLine(pos[0].x,pos[0].y,pos[1].x,pos[1].y,GetColor(255,0,0),1);
+			}
 			//xy画像
 			Vector2D posXY[2]={jointsXY[pair.first],jointsXY[pair.second]};
 			DrawLine(posXY[0].x,posXY[0].y,posXY[1].x,posXY[1].y,GetColor(255,0,0),1);

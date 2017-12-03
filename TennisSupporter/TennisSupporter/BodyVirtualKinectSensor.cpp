@@ -1,13 +1,7 @@
 #include"BodyVirtualKinectSensor.h"
 
 //-------------------BodyVirtualKinectSensor-------------------
-BodyVirtualKinectSensor::BodyVirtualKinectSensor(IKinectSensor *pSensor){
-	//source
-	IBodyFrameSource *pBodySource;
-	ErrorCheck(pSensor->get_BodyFrameSource(&pBodySource),"You can't get source.");
-	//reader
-	ErrorCheck(pBodySource->OpenReader(&m_pBodyReader),"You can't open reader.");
-}
+BodyVirtualKinectSensor::BodyVirtualKinectSensor():IBodyKinectSensor(){}
 
 BodyVirtualKinectSensor::~BodyVirtualKinectSensor(){}
 

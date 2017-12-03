@@ -20,7 +20,7 @@ std::shared_ptr<GraphDataBuilder::IDataFactory> GraphDataBuilder::IDataFactory::
 //---------------GraphDataBuilder::PosDataFactory---------------
 GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type):type(i_type){}
 
-double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
+double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
 	return data[type].Y;
 }
 
@@ -41,7 +41,7 @@ void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
 GraphDataBuilder::AngleDataFactory::AngleDataFactory(JointType point1,JointType point2,JointType point3)
 	:type{point1,point2,point3}{}
 
-double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
+double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
 	return data[type[1]].CalculateAngle(data[type[0]],data[type[2]])/M_PI*180;
 }
 
@@ -145,7 +145,7 @@ void GraphDataBuilder::Draw()const{
 	}
 	//born‚ğ•`‰æ
 	const std::map<JointType,Vector2D>::const_iterator ite=relativeInputPos.end();
-	for(const std::pair<JointType,JointType> &pair:BodyKinectSensor::bonePairs){
+	for(const std::pair<JointType,JointType> &pair:IBodyKinectSensor::bonePairs){
 		//‘S‚Ä‚ÌŠÖß‚ğ•`‰æ‚·‚é‚í‚¯‚Å‚Í‚È‚¢‚Ì‚Å˜R‚ê‚ª‚ ‚éBfind()‚ğ—p‚¢‚éB
 		const std::map<JointType,Vector2D>::const_iterator fit=relativeInputPos.find(pair.first),sit=relativeInputPos.find(pair.second);
 		if(fit!=ite && sit!=ite){
@@ -171,7 +171,7 @@ void GraphDataBuilder::Draw()const{
 
 }
 
-double GraphDataBuilder::CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const{
+double GraphDataBuilder::CalData(const std::vector<IBodyKinectSensor::JointPosition> &playData)const{
 	return m_dataFactory->ICalData(playData);
 }
 

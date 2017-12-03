@@ -13,13 +13,12 @@ public:
 
 	//変数
 protected:
-	IBodyFrameReader *m_pBodyReader;
 
 	//関数
 protected:
 
 public:
-	BodyVirtualKinectSensor(IKinectSensor *pSensor);
+	BodyVirtualKinectSensor();
 	~BodyVirtualKinectSensor();
 	int Update(const std::vector<std::vector<JointPosition>> &frameData);//読み込み済みデータを用いて更新する
 	void OutputJointPoitions(std::ofstream &writeFile,const std::vector<std::vector<JointPosition>> &frameData)const;//writeFileに引数のデータから読み取れるjointPositionsを1行で出力する

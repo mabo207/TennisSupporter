@@ -1,7 +1,7 @@
 #ifndef DEF_GRAPHDATABUILDER_H
 #define DEF_GRAPHDATABUILDER_H
 
-#include"BodyKinectSensor.h"
+#include"IBodyKinectSensor.h"
 #include<memory>
 #include<map>
 
@@ -12,7 +12,7 @@ class GraphDataBuilder{
 	//基底クラス
 	struct IDataFactory{
 		//関数
-		virtual double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const=0;
+		virtual double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const=0;
 		virtual void Draw(Vector2D pos)const=0;
 		virtual double DataMax()const=0;
 		virtual double DataMin()const=0;
@@ -25,7 +25,7 @@ class GraphDataBuilder{
 		const JointType type;
 		//関数
 		PosDataFactory(JointType i_type);
-		double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const;
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
 		double DataMax()const;
 		double DataMin()const;
 		void Draw(Vector2D pos)const;
@@ -38,7 +38,7 @@ class GraphDataBuilder{
 		const JointType type[indexNum];
 		//関数
 		AngleDataFactory(JointType point1,JointType point2,JointType point3);
-		double ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const;
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
 		double DataMax()const;
 		double DataMin()const;
 		void Draw(Vector2D pos)const;
@@ -67,7 +67,7 @@ public:
 	~GraphDataBuilder();
 	int Update();//マウス左ボタンを離した瞬間は1を返す
 	void Draw()const;
-	double CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const;
+	double CalData(const std::vector<IBodyKinectSensor::JointPosition> &playData)const;
 	double DataMax()const;
 	double DataMin()const;
 };

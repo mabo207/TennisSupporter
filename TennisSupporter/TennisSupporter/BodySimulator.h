@@ -1,7 +1,7 @@
 #ifndef DEF_BODYSIMULATOR_H
 #define DEF_BODYSIMULATOR_H
 
-#include"DepthKinectSensor.h"
+#include"IBodySimulateScene.h"
 #include"GraphDataBuilder.h"
 
 //Kinectでbody要素を読み取り、記録・再生する機能
@@ -9,16 +9,40 @@ class BodySimulator{
 	//列挙体・型
 
 	//定数
+
+	//変数
+protected:
+	IKinectSensor *m_pSensor;//kinectのセンサー
+	std::shared_ptr<IBodySimulateScene> m_pScene;//現在行っている処理
+
+	int m_font;
+
+   //関数
+protected:
+
+public:
+	BodySimulator();
+	~BodySimulator();
+	int Update();
+	void Draw()const;
+
+/*
+	//列挙体・型
+
+	//定数
 	static const int writeCountMax;//これ以上の時間はデータを書き込まないようにする
 	static const int captureFps;//撮影データのfps
 	static const int drawFps;//描画時のfps
+	
 	static const Vector2D kinectSize;//KinectV2の取得可能な画像サイズ（body,depth）
+	
 	static const Vector2D graphPos,graphSize;//グラフの位置と大きさ
 	static const std::string sectionStr;//sectionデータ書き出しの際のsectionの区切り文字列
 
 	//変数
 protected:
 	IKinectSensor *m_pSensor;//kinectのセンサー
+	
 	std::shared_ptr<BodyKinectSensor> m_pBodyKinectSensor;//Body部分の更新を行う
 	std::shared_ptr<DepthKinectSensor> m_pDepthKinectSensor;//depth部分の更新を行う
 
@@ -47,9 +71,10 @@ protected:
 
 	//関数
 protected:
+	bool ReadFile(const char *filename);
+	
 	int CalReadIndex()const;//m_playFrameから、m_playDataのどの番号のデータを読み込めば良いか計算する。
 	double CalPlayFrame(int index)const;//CalReadIndexの逆算
-	bool ReadFile(const char *filename);
 	void DataBuild();
 	bool JudgeMouseInGraph()const;
 	void UpdateImage();
@@ -60,6 +85,7 @@ public:
 	~BodySimulator();
 	int Update();
 	void Draw()const;
+//*/
 };
 
 #endif // !DEF_BODYSIMULATOR_H
