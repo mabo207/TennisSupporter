@@ -12,6 +12,7 @@ public:
 		enum TYPE{
 			PHOTOGRAPHER
 			,PLAYER
+			,ANALYZER
 			,END
 		};
 		static const TYPE link(int num);

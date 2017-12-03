@@ -150,6 +150,7 @@
     <ClCompile Include="BodyDataPlayer.cpp" />
     <ClCompile Include="BodyKinectSensor.cpp" />
     <ClCompile Include="BodyPhotographer.cpp" />
+    <ClCompile Include="DataAnalyzer.cpp" />
     <ClCompile Include="GraphSingleData.cpp" />
     <ClCompile Include="IBodySimulateScene.cpp" />
     <ClCompile Include="BodySimulator.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="BodyDataPlayer.h" />
     <ClInclude Include="BodyKinectSensor.h" />
     <ClInclude Include="BodyPhotographer.h" />
+    <ClInclude Include="DataAnalyzer.h" />
     <ClInclude Include="GraphSingleData.h" />
     <ClInclude Include="IBodySimulateScene.h" />
     <ClInclude Include="BodySimulator.h" />

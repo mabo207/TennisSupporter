@@ -7,6 +7,7 @@
 
 #include"BodyDataPlayer.h"
 #include"BodyPhotographer.h"
+#include"DataAnalyzer.h"
 
 //-----------------BodySimulator-----------------
 BodySimulator::BodySimulator()
@@ -42,6 +43,12 @@ int BodySimulator::Update(){
 				new BodyDataPlayer(
 					m_font
 					,("SaveData/"+to_string_0d(0,3)+".txt").c_str()));
+		} else if(index==2){
+			//場面を分析モードに変更
+			m_pScene=std::shared_ptr<IBodySimulateScene>(
+				new DataAnalyzer(
+					m_font
+					,("SaveData/"+to_string_0d(0,3)+"_section.txt").c_str()));
 		}
 		break;
 	case(IBodySimulateScene::MODE::PLAYER):
@@ -50,6 +57,14 @@ int BodySimulator::Update(){
 			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
 		}
 		break;
+	case(IBodySimulateScene::MODE::ANALYZER):
+		if(index==1){
+			//場面を録画モードに変更
+			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
+		}
+		break;
+	default:
+		return -1;
 	}
 
 	return 0;

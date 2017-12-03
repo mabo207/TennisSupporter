@@ -58,10 +58,13 @@ int BodyPhotographer::Update(){
 		//body位置の出力
 		m_pBodyKinectSensor->OutputJointPoitions(m_writeFile);
 	}
-	//記録データ再生モードへの移行処理
-	if(keyboard_get(KEY_INPUT_0)==1){
+	//状態遷移
+	if(keyboard_get(KEY_INPUT_1)==1){
 		//再生モードへ
 		return 1;
+	} else if(keyboard_get(KEY_INPUT_2)==1){
+		//分析モードへ
+		return 2;
 	}
 	return 0;
 }
