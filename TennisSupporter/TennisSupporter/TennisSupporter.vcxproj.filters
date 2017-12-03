@@ -66,6 +66,9 @@
     <ClCompile Include="IBodySimulateScene.cpp">
       <Filter>ソース ファイル\BodySimulator</Filter>
     </ClCompile>
+    <ClCompile Include="GraphSingleData.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="input.h">
@@ -103,6 +106,9 @@
     </ClInclude>
     <ClInclude Include="IBodySimulateScene.h">
       <Filter>ヘッダー ファイル\BodySimulator</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphSingleData.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

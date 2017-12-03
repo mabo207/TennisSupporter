@@ -4,6 +4,7 @@
 #include"IBodySimulateScene.h"
 #include"BodyVirtualKinectSensor.h"
 #include"GraphDataBuilder.h"
+#include"GraphSingleData.h"
 #include<memory>
 
 class BodyDataPlayer:public IBodySimulateScene{
@@ -15,15 +16,18 @@ class BodyDataPlayer:public IBodySimulateScene{
 
 	//変数
 protected:
+/*
+	std::vector<std::vector<std::vector<IBodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。
 	std::shared_ptr<BodyVirtualKinectSensor> m_pBodyVirtualKinectSensor;//Body部分の更新を行う
-	
+	std::vector<double> m_data;//グラフ化するデータ
+	double m_dataMin,m_dataMax;//m_dataの最大値最小値
+//*/
+	GraphSingleData m_graphSingleData;
+
 	//記録した物を再生する際に用いるデータ
 	std::string m_playDataName;//再生しているデータのファイル名(拡張子を除く)
 	double m_playFrame;//今何フレーム目を再生しているか
 	double m_playRate;//再生速度
-	std::vector<std::vector<std::vector<IBodyKinectSensor::JointPosition>>> m_playData;//ファイル全体を読み込んだデータを格納する変数。m_playData[flameIndex][bodyIndex][JointType]というようにして要素を呼び出す。最大1MB。
-	std::vector<double> m_data;//グラフ化するデータ
-	double m_dataMin,m_dataMax;//m_dataの最大値最小値
 	std::shared_ptr<GraphDataBuilder> m_pGraphDataBuilder;//データ化の更新を管理する
 	bool m_playFlag;//再生を行うかどうか
 	std::vector<std::pair<int,int>> m_section;//グラフデータの切り取り区間

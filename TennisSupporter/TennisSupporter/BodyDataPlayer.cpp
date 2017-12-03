@@ -11,11 +11,11 @@ const Vector2D BodyDataPlayer::graphSize=Vector2D(BodyDataPlayer::writeCountMax,
 const std::string BodyDataPlayer::sectionStr="##################";
 
 BodyDataPlayer::BodyDataPlayer(int font,const char *filename)
-	:IBodySimulateScene(MODE::PLAYER),m_playFrame(0.0),m_playRate(1.0),m_dataMin(300),m_dataMax(-300),
+	:IBodySimulateScene(MODE::PLAYER),m_playFrame(0.0),m_playRate(1.0),
 	m_font(font),m_playFlag(true),m_beforeRClickFrame(0),m_startSectionIndex(0),m_graphUnity(false)
 {
 	//BodyVirtualKinectSensorの起動
-	m_pBodyVirtualKinectSensor=std::shared_ptr<BodyVirtualKinectSensor>(new BodyVirtualKinectSensor());
+	m_graphSingleData.m_pBodyVirtualKinectSensor=std::shared_ptr<BodyVirtualKinectSensor>(new BodyVirtualKinectSensor());
 	//GraphDataBuilderの起動
 	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0)));
 	//データの読み取り
@@ -27,8 +27,8 @@ BodyDataPlayer::~BodyDataPlayer(){}
 bool BodyDataPlayer::ReadFile(const char *filename){
 	std::ifstream readFile(filename);
 	//データを全て読み込むが、量が多いので上手くreserveしながら読み込む
-	m_playData.clear();
-	m_playData.reserve(writeCountMax);//最大記録フレーム数によりreserve
+	m_graphSingleData.m_playData.clear();
+	m_graphSingleData.m_playData.reserve(writeCountMax);//最大記録フレーム数によりreserve
 
 	std::vector<std::vector<IBodyKinectSensor::JointPosition>> frameData;
 	frameData.reserve(IBodyKinectSensor::bodyNum);
@@ -49,7 +49,7 @@ bool BodyDataPlayer::ReadFile(const char *filename){
 				break;
 			} else if(ch=='\n'){
 				//1行読み終わる時(==1フレーム読み終わり)
-				m_playData.push_back(frameData);
+				m_graphSingleData.m_playData.push_back(frameData);
 				frameData.clear();
 				bodyData.clear();
 				bodyindex=0;
@@ -118,33 +118,7 @@ bool BodyDataPlayer::ReadFile(const char *filename){
 }
 
 void BodyDataPlayer::DataBuild(){
-	size_t playdatasize=m_playData.size();
-	m_data.clear();
-	m_data.reserve(playdatasize);
-	for(size_t i=0;i<playdatasize;i++){
-		double data=0.0;
-		for(size_t j=0,bodynum=m_playData[i].size();j<bodynum;j++){
-			bool flag=false;
-			for(size_t k=0,jointnum=m_playData[i][j].size();k<jointnum;k++){
-				if(!(m_playData[i][j][k]==IBodyKinectSensor::JointPosition())){
-					flag=true;
-					break;
-				}
-			}
-			if(flag){
-				data=m_pGraphDataBuilder->CalData(m_playData[i][j]);
-				break;
-			}
-		}
-		m_data.push_back(data);
-		if(i!=0){
-			m_dataMin=std::fmin(m_dataMin,data);
-			m_dataMax=std::fmax(m_dataMax,data);
-		} else{
-			m_dataMin=data;
-			m_dataMax=data;
-		}
-	}
+	m_graphSingleData.DataBuild(m_pGraphDataBuilder);
 	//フレーム数を初期化、イメージも更新
 	m_playFrame=0.0;
 	UpdateImage();
@@ -164,10 +138,7 @@ bool BodyDataPlayer::JudgeMouseInGraph()const{
 }
 
 void BodyDataPlayer::UpdateImage(){
-	int index=CalReadIndex();
-	if(index>=0 && index<(int)m_playData.size()){
-		m_pBodyVirtualKinectSensor->Update(m_playData[index]);
-	}
+	m_graphSingleData.UpdateVirtualSensor(CalReadIndex());
 }
 
 void BodyDataPlayer::WriteSections(){
@@ -179,7 +150,7 @@ void BodyDataPlayer::WriteSections(){
 		return;
 	}
 	//ファイルに書き出し
-	int playdatasize=(int)m_playData.size();
+	int playdatasize=(int)m_graphSingleData.m_playData.size();
 	for(const std::pair<int,int> &pair:m_section){
 		//開始と末尾を算出
 		int top=(int)std::fmin(pair.first,pair.second);
@@ -190,7 +161,7 @@ void BodyDataPlayer::WriteSections(){
 			ofs<<sectionStr<<std::endl;
 			//1フレームずつ書き出し
 			for(int i=top;i<=bottom;i++){
-				m_pBodyVirtualKinectSensor->OutputJointPoitions(ofs,m_playData[i]);
+				m_graphSingleData.m_pBodyVirtualKinectSensor->OutputJointPoitions(ofs,m_graphSingleData.m_playData[i]);
 			}
 		}
 	}
@@ -227,7 +198,7 @@ int BodyDataPlayer::Update(){
 	if(mouse_get(MOUSE_INPUT_RIGHT)<=0){
 		//右クリックが押されていない場合は普通に再生
 		int a=CalReadIndex();
-		if(m_playFlag && a<(int)m_playData.size()){
+		if(m_playFlag && a<(int)m_graphSingleData.m_playData.size()){
 			//まだデータ終端までいっておらず、かつ再生モードになっている時、フレーム数を更新
 			m_playFrame+=m_playRate;
 		}
@@ -237,8 +208,8 @@ int BodyDataPlayer::Update(){
 		}
 	} else{
 		//右クリックが押されている場合は、マウスの位置に従ってイメージを更新
-		size_t index=(size_t)(std::fmin(m_playData.size()-1,(size_t)(std::fmax(0,GetMousePointVector2D().x-graphPos.x))));
-		m_pBodyVirtualKinectSensor->Update(m_playData[index]);
+		size_t index=(size_t)(std::fmin(m_graphSingleData.m_playData.size()-1,(size_t)(std::fmax(0,GetMousePointVector2D().x-graphPos.x))));
+		m_graphSingleData.UpdateVirtualSensor(index);
 	}
 	//入力インターフェース
 	if(m_pGraphDataBuilder->Update()==1){
@@ -293,14 +264,14 @@ void BodyDataPlayer::Draw()const{
 		,xyPos(kinectSize.x/2,kinectSize.y*3/2)
 		,zyPos(kinectSize*3/2);
 	//再生時
-	m_pBodyVirtualKinectSensor->Draw(nullptr,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
-																												 //グラフ描画
+	m_graphSingleData.m_pBodyVirtualKinectSensor->Draw(nullptr,Vector2D(-3000,-3000),kinectSize,xyPos,kinectSize,zyPos,kinectSize);//(depth画像に対するbodyボーンは描画しない)
+	//グラフ描画
 	if(m_graphUnity){
 		//統一基準(1pxにつき1フレームという基準が消滅する)
 		//最大最小値の設定
 		const double dataTop=m_pGraphDataBuilder->DataMax(),dataBottom=m_pGraphDataBuilder->DataMin();
 		//1フレームに対するピクセル数の計算
-		const double frameRateToPixel=((double)writeCountMax)/m_data.size();
+		const double frameRateToPixel=((double)writeCountMax)/m_graphSingleData.m_data.size();
 		//現在存在している区間の表示
 		for(const std::pair<int,int> &section:m_section){
 			DrawBox(graphPos.x+(int)(section.first*frameRateToPixel),graphPos.y,graphPos.x+(int)(section.second*frameRateToPixel),graphPos.y+graphSize.y,GetColor(128,128,255),TRUE);
@@ -311,18 +282,18 @@ void BodyDataPlayer::Draw()const{
 		}
 
 		//折れ線の描画
-		for(size_t i=0,datanum=m_data.size();i<datanum;i++){
-			DrawCircle(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[i])),1,GetColor(128,255,255),TRUE);
+		for(size_t i=0,datanum=m_graphSingleData.m_data.size();i<datanum;i++){
+			DrawCircle(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_graphSingleData.m_data[i])),1,GetColor(128,255,255),TRUE);
 		}
-		for(size_t i=0,datanum=m_data.size();i+1<datanum;i++){
-			DrawLine(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[i])),graphPos.x+(int)((i+1)*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[i+1])),GetColor(128,128,255),1);
+		for(size_t i=0,datanum=m_graphSingleData.m_data.size();i+1<datanum;i++){
+			DrawLine(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_graphSingleData.m_data[i])),graphPos.x+(int)((i+1)*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_graphSingleData.m_data[i+1])),GetColor(128,128,255),1);
 		}
 		//再生時間の描画
 		DrawLine(graphPos.x+(int)(CalReadIndex()*frameRateToPixel),graphPos.y,graphPos.x+(int)(CalReadIndex()*frameRateToPixel),graphPos.y+graphSize.y,GetColor(128,128,128),1);
 		//現在の値の表示
-		if(CalReadIndex()>=0 && CalReadIndex()<(int)m_data.size()){
+		if(CalReadIndex()>=0 && CalReadIndex()<(int)m_graphSingleData.m_data.size()){
 			//配列外参照をする可能性があるので弾く。配列外参照時は描画しない。
-			int dataY=graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_data[CalReadIndex()]));
+			int dataY=graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_graphSingleData.m_data[CalReadIndex()]));
 			DrawLine(graphPos.x,dataY,graphPos.x+graphSize.x,dataY,GetColor(128,128,128),1);
 		}
 		//data最大値の表示
@@ -343,23 +314,23 @@ void BodyDataPlayer::Draw()const{
 		}
 
 		//折れ線の描画
-		for(size_t i=0,datanum=m_data.size();i<datanum;i++){
-			DrawPixel(graphPos.x+i,graphPos.y+(int)(graphSize.y/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[i])),GetColor(128,255,255));
+		for(size_t i=0,datanum=m_graphSingleData.m_data.size();i<datanum;i++){
+			DrawPixel(graphPos.x+i,graphPos.y+(int)(graphSize.y/std::fmax(m_graphSingleData.m_dataMax-m_graphSingleData.m_dataMin,0.00001)*(m_graphSingleData.m_dataMax-m_graphSingleData.m_data[i])),GetColor(128,255,255));
 		}
 		//再生時間の描画
 		DrawLine(graphPos.x+CalReadIndex(),graphPos.y,graphPos.x+CalReadIndex(),graphPos.y+graphSize.y,GetColor(128,128,128),1);
 		//現在の値の表示
-		if(CalReadIndex()>=0 && CalReadIndex()<(int)m_data.size()){
+		if(CalReadIndex()>=0 && CalReadIndex()<(int)m_graphSingleData.m_data.size()){
 			//配列外参照をする可能性があるので弾く。配列外参照時は描画しない。
-			int dataY=graphPos.y+(int)(graphSize.y/std::fmax(m_dataMax-m_dataMin,0.00001)*(m_dataMax-m_data[CalReadIndex()]));
+			int dataY=graphPos.y+(int)(graphSize.y/std::fmax(m_graphSingleData.m_dataMax-m_graphSingleData.m_dataMin,0.00001)*(m_graphSingleData.m_dataMax-m_graphSingleData.m_data[CalReadIndex()]));
 			DrawLine(graphPos.x,dataY,graphPos.x+graphSize.x,dataY,GetColor(128,128,128),1);
 		}
 		//data最大値の表示
 		DrawLine(graphPos.x,graphPos.y,graphPos.x+graphSize.x,graphPos.y,GetColor(128,128,128),1);
-		DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y,std::to_string(m_dataMax),GetColor(255,255,255),m_font);
+		DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y,std::to_string(m_graphSingleData.m_dataMax),GetColor(255,255,255),m_font);
 		//data最小値の表示
 		DrawLine(graphPos.x,graphPos.y+graphSize.y,graphPos.x+graphSize.x,graphPos.y+graphSize.y,GetColor(128,128,128),1);
-		DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y+graphSize.y,std::to_string(m_dataMin),GetColor(255,255,255),m_font);
+		DrawStringRightJustifiedToHandle(graphPos.x-5,graphPos.y+graphSize.y,std::to_string(m_graphSingleData.m_dataMin),GetColor(255,255,255),m_font);
 
 	}
 	//読み込みデータインターフェースの描画
