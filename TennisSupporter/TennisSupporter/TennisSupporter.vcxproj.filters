@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ヘッダー ファイル\IBodyKinectSensor">
+      <UniqueIdentifier>{ee5dd4e8-7e53-4caf-9fe5-5f48e2cab7fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\IBodyKinectSensor">
+      <UniqueIdentifier>{cee1cd75-7834-4e87-93e1-2656297f396f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -22,9 +28,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="ToolsLib.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="BodyKinectSensor.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="KinectTools.cpp">
@@ -39,15 +42,21 @@
     <ClCompile Include="GraphDataBuilder.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="BodyKinectSensor.cpp">
+      <Filter>ソース ファイル\IBodyKinectSensor</Filter>
+    </ClCompile>
+    <ClCompile Include="IBodyKinectSensor.cpp">
+      <Filter>ソース ファイル\IBodyKinectSensor</Filter>
+    </ClCompile>
+    <ClCompile Include="BodyVirtualKinectSensor.cpp">
+      <Filter>ソース ファイル\IBodyKinectSensor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="input.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="ToolsLib.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BodyKinectSensor.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="KinectTools.h">
@@ -61,6 +70,15 @@
     </ClInclude>
     <ClInclude Include="GraphDataBuilder.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="BodyKinectSensor.h">
+      <Filter>ヘッダー ファイル\IBodyKinectSensor</Filter>
+    </ClInclude>
+    <ClInclude Include="IBodyKinectSensor.h">
+      <Filter>ヘッダー ファイル\IBodyKinectSensor</Filter>
+    </ClInclude>
+    <ClInclude Include="BodyVirtualKinectSensor.h">
+      <Filter>ヘッダー ファイル\IBodyKinectSensor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

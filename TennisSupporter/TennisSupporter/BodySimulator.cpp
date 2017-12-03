@@ -203,8 +203,8 @@ void BodySimulator::WriteSections(){
 	int playdatasize=(int)m_playData.size();
 	for(const std::pair<int,int> &pair:m_section){
 		//開始と末尾を算出
-		int top=std::fmin(pair.first,pair.second);
-		int bottom=std::fmax(pair.first,pair.second);
+		int top=(int)std::fmin(pair.first,pair.second);
+		int bottom=(int)std::fmax(pair.first,pair.second);
 		//書き出し
 		if(top>=0 && bottom<playdatasize){
 			//区切り文字列と改行の書き出し
