@@ -147,20 +147,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BodyDataPlayer.cpp" />
     <ClCompile Include="BodyKinectSensor.cpp" />
+    <ClCompile Include="BodyPhotographer.cpp" />
+    <ClCompile Include="DataAnalyzer.cpp" />
+    <ClCompile Include="GraphSingleData.cpp" />
+    <ClCompile Include="IBodySimulateScene.cpp" />
     <ClCompile Include="BodySimulator.cpp" />
+    <ClCompile Include="BodyVirtualKinectSensor.cpp" />
     <ClCompile Include="DepthKinectSensor.cpp" />
     <ClCompile Include="GraphDataBuilder.cpp" />
+    <ClCompile Include="IBodyKinectSensor.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="KinectTools.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ToolsLib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BodyDataPlayer.h" />
     <ClInclude Include="BodyKinectSensor.h" />
+    <ClInclude Include="BodyPhotographer.h" />
+    <ClInclude Include="DataAnalyzer.h" />
+    <ClInclude Include="GraphSingleData.h" />
+    <ClInclude Include="IBodySimulateScene.h" />
     <ClInclude Include="BodySimulator.h" />
+    <ClInclude Include="BodyVirtualKinectSensor.h" />
     <ClInclude Include="GraphDataBuilder.h" />
     <ClInclude Include="DepthKinectSensor.h" />
+    <ClInclude Include="IBodyKinectSensor.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="KinectTools.h" />
     <ClInclude Include="ToolsLib.h" />

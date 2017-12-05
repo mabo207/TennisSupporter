@@ -20,8 +20,16 @@ std::shared_ptr<GraphDataBuilder::IDataFactory> GraphDataBuilder::IDataFactory::
 //---------------GraphDataBuilder::PosDataFactory---------------
 GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type):type(i_type){}
 
-double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
-	return data[type].Z;
+double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
+	return data[type].Y;
+}
+
+double GraphDataBuilder::PosDataFactory::DataMax()const{
+	return 8.000*std::tan(M_PI/6);
+}
+
+double GraphDataBuilder::PosDataFactory::DataMin()const{
+	return -8.000*std::tan(M_PI/6);
 }
 
 void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
@@ -33,8 +41,16 @@ void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
 GraphDataBuilder::AngleDataFactory::AngleDataFactory(JointType point1,JointType point2,JointType point3)
 	:type{point1,point2,point3}{}
 
-double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<BodyKinectSensor::JointPosition> &data)const{
+double GraphDataBuilder::AngleDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
 	return data[type[1]].CalculateAngle(data[type[0]],data[type[2]])/M_PI*180;
+}
+
+double GraphDataBuilder::AngleDataFactory::DataMax()const{
+	return 180.0;
+}
+
+double GraphDataBuilder::AngleDataFactory::DataMin()const{
+	return 0.0;
 }
 
 void GraphDataBuilder::AngleDataFactory::Draw(Vector2D pos)const{
@@ -129,7 +145,7 @@ void GraphDataBuilder::Draw()const{
 	}
 	//bornÇï`âÊ
 	const std::map<JointType,Vector2D>::const_iterator ite=relativeInputPos.end();
-	for(const std::pair<JointType,JointType> &pair:BodyKinectSensor::bonePairs){
+	for(const std::pair<JointType,JointType> &pair:IBodyKinectSensor::bonePairs){
 		//ëSÇƒÇÃä÷êﬂÇï`âÊÇ∑ÇÈÇÌÇØÇ≈ÇÕÇ»Ç¢ÇÃÇ≈òRÇÍÇ™Ç†ÇÈÅBfind()ÇópÇ¢ÇÈÅB
 		const std::map<JointType,Vector2D>::const_iterator fit=relativeInputPos.find(pair.first),sit=relativeInputPos.find(pair.second);
 		if(fit!=ite && sit!=ite){
@@ -155,6 +171,14 @@ void GraphDataBuilder::Draw()const{
 
 }
 
-double GraphDataBuilder::CalData(const std::vector<BodyKinectSensor::JointPosition> &playData)const{
+double GraphDataBuilder::CalData(const std::vector<IBodyKinectSensor::JointPosition> &playData)const{
 	return m_dataFactory->ICalData(playData);
+}
+
+double GraphDataBuilder::DataMax()const{
+	return m_dataFactory->DataMax();
+}
+
+double GraphDataBuilder::DataMin()const{
+	return m_dataFactory->DataMin();
 }
