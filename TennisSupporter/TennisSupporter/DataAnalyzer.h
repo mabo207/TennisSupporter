@@ -25,9 +25,11 @@ protected:
 	std::shared_ptr<GraphDataBuilder> m_pGraphDataBuilder;//データ化の更新を管理する
 	bool m_playFlag;//再生を行うかどうか
 	bool m_graphUnity;//グラフの縦横軸の基準を統一するか
+	bool m_widthUnity;//グラフの横軸均一化を行うか
 
 	double m_extend;//グラフの拡大率
 	double m_dataAverage;//データの平均値
+	size_t m_dataSizeMax;//m_graphDataの各データ群のデータ数のうち最大のもの
 
 	int m_font;//グラフに表示する文字のfont
 

@@ -12,7 +12,7 @@ const std::string DataAnalyzer::sectionStr="##################";
 
 DataAnalyzer::DataAnalyzer(int font,const char *filename)
 	:IBodySimulateScene(MODE::ANALYZER),m_playFrame(0.0),m_playRate(1.0),
-	m_font(font),m_playFlag(true),m_graphUnity(false),m_extend(1.0),m_dataAverage(0.0)
+	m_font(font),m_playFlag(true),m_graphUnity(false),m_extend(1.0),m_dataAverage(0.0),m_widthUnity(false),m_dataSizeMax(1)
 {
 	//GraphDataBuilderの起動
 	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0)));
@@ -125,14 +125,17 @@ void DataAnalyzer::DataBuild(){
 	for(GraphSingleData &gdata:m_graphData){
 		gdata.DataBuild(m_pGraphDataBuilder);
 	}
-	//データの平均を求める
-	size_t size=0;
+	//m_dataAverageとm_dataSizeMaxを求める
+	size_t size=0,memo=0;
 	m_dataAverage=0;
+	m_dataSizeMax=1;
 	for(const GraphSingleData &gdata:m_graphData){
 		for(const double &data:gdata.m_data){
 			size++;
 			m_dataAverage+=data;
 		}
+		m_dataSizeMax=(size_t)std::fmax(m_dataSizeMax,size-memo);
+		memo=size;
 	}
 	m_dataAverage/=std::fmax(size,1);
 	//フレーム数を初期化、イメージも更新
@@ -212,6 +215,10 @@ int DataAnalyzer::Update(){
 	if(keyboard_get(KEY_INPUT_U)==1){
 		m_graphUnity=!m_graphUnity;
 	}
+	//グラフの横軸均一化の切り替え
+	if(keyboard_get(KEY_INPUT_I)==1){
+		m_widthUnity=!m_widthUnity;
+	}
 	//再生速度調整
 	if(keyboard_get(KEY_INPUT_Z)>0){
 		//遅くする
@@ -277,8 +284,15 @@ void DataAnalyzer::Draw()const{
 	for(size_t j=0,size=m_graphData.size();j<size;j++){
 		//グラフの色の設定
 		unsigned int color=GetColor(64*(j%4)+63,64*((j*3%16)/4)+63,64*((j*5%64)/16)+63);
+		//色一覧に描画
+		DrawBox(graphPos.x+graphSize.x+80,330+j*20,graphPos.x+graphSize.x+80+60,330+j*20+10,color,TRUE);
 		//1フレームに対するピクセル数の計算
-		const double frameRateToPixel=((double)writeCountMax)/m_graphData[j].m_data.size();
+		double frameRateToPixel;
+		if(m_widthUnity){
+			frameRateToPixel=((double)writeCountMax)/m_graphData[j].m_data.size();
+		} else{
+			frameRateToPixel=((double)writeCountMax)/m_dataSizeMax;
+		}
 		//折れ線の描画
 		for(size_t i=0,datanum=m_graphData[j].m_data.size();i<datanum;i++){
 			DrawCircle(graphPos.x+(int)(i*frameRateToPixel),graphPos.y+(int)(graphSize.y/std::fmax(dataTop-dataBottom,0.00001)*(dataTop-m_graphData[j].m_data[i])),1,color,TRUE);
