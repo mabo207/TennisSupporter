@@ -5,7 +5,7 @@
 #include"IBodyKinectSensor.h"
 
 //-------------------IBodyKinectSensor::JointPosition-------------------
-const float IBodyKinectSensor::JointPosition::defaultfloat=(float)0.0001;
+const float IBodyKinectSensor::JointPosition::defaultfloat=(float)0.0000;
 
 //X,Y,Z‚Ì’l‚ð’¼Ú“ü—Í‚·‚é
 IBodyKinectSensor::JointPosition::JointPosition(float i_X,float i_Y,float i_Z)
@@ -70,7 +70,7 @@ IBodyKinectSensor::JointPosition::JointPosition(const std::string &str){
 
 //==‚ÌŽÀ‘•
 bool IBodyKinectSensor::JointPosition::operator==(const JointPosition &otherobj)const{
-	return (this->X==otherobj.X && this->Y==otherobj.Y && this->X==otherobj.X);
+	return (this->X==otherobj.X && this->Y==otherobj.Y && this->Z==otherobj.Z);
 }
 
 //"(X,Y,Z)"‚Æ‚¢‚¤•¶Žš—ñ‚ðo—Í‚·‚é
