@@ -42,13 +42,13 @@ int BodySimulator::Update(){
 			m_pScene=std::shared_ptr<IBodySimulateScene>(
 				new BodyDataPlayer(
 					m_font
-					,("SaveData/"+to_string_0d(0,3)+".txt").c_str()));
+					,("SaveData/"+to_string_0d(0,4)+".txt").c_str()));
 		} else if(index==2){
 			//ê–Ê‚ğ•ªÍƒ‚[ƒh‚É•ÏX
 			m_pScene=std::shared_ptr<IBodySimulateScene>(
 				new DataAnalyzer(
 					m_font
-					,("SaveData/"+to_string_0d(0,3)+"_section.txt").c_str()));
+					,("SaveData/"+to_string_0d(0,4)+"_section.txt").c_str()));
 		}
 		break;
 	case(IBodySimulateScene::MODE::PLAYER):

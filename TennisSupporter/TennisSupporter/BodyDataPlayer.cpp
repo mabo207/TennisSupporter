@@ -185,11 +185,11 @@ int BodyDataPlayer::Update(){
 	} else if(keyboard_get(KEY_INPUT_RSHIFT)==1){
 		//右シフトキー入力で再生停止の切り替え
 		m_playFlag=!m_playFlag;
-	} else if(keyboard_get(KEY_INPUT_LEFT)==1){
+	} else if(keyboard_get(KEY_INPUT_LEFT)==1 || keyboard_get(KEY_INPUT_LEFT)>30){
 		//左キー入力で再生位置を戻し、イメージ更新
 		m_playFrame-=m_playRate;
 		UpdateImage();
-	} else if(keyboard_get(KEY_INPUT_RIGHT)==1){
+	} else if(keyboard_get(KEY_INPUT_RIGHT)==1 || keyboard_get(KEY_INPUT_RIGHT)>30){
 		//右キー入力で再生位置を進め、イメージ更新
 		m_playFrame+=m_playRate;
 		UpdateImage();

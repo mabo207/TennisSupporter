@@ -1,24 +1,49 @@
 #define _USE_MATH_DEFINES
 
 #include<cmath>
+#include<assert.h>
 #include"BodyPhotographer.h"
 #include"DxLib.h"
 #include"input.h"
 
+
 //-----------------BodyPhotographer-----------------
 BodyPhotographer::BodyPhotographer(IKinectSensor *pSensor)
 	:IBodySimulateScene(MODE::PHOTOGRAPHER),m_pSensor(pSensor),m_fileWriteFlag(false),m_writeCount(0)
+	,m_font(CreateFontToHandle("メイリオ",32,3,-1))
 {
 	//BodySensorの起動
 	m_pBodyKinectSensor=std::shared_ptr<BodyKinectSensor>(new BodyKinectSensor(m_pSensor));
 	//DepthKinectSensorの起動
 	m_pDepthKinectSensor=std::shared_ptr<DepthKinectSensor>(new DepthKinectSensor(kinectSize,m_pSensor));
 	//m_writeFileは、必要になり次第初期化する。
-
+	//出力ファイル名の設定
+	m_writeFileName=SearchFileName();
 }
 
 BodyPhotographer::~BodyPhotographer(){
 	m_writeFile.close();
+	DeleteFontToHandle(m_font);
+}
+
+void BodyPhotographer::FinishFileWrite(){
+	m_fileWriteFlag=false;//ファイルを書き込んでいない事を明確にする
+	m_writeFile.close();//ファイルを閉じる
+	//次に用いるファイル名を検索して格納する
+	m_writeFileName=SearchFileName();
+}
+
+std::string BodyPhotographer::SearchFileName()const{
+	//ファイル名が「"SaveData/"+to_string_0d(n,4)+".txt"」で表現されるという前提で探索を行う
+	for(int i=0;i<100;i++){
+		std::string name="SaveData/"+to_string_0d(i,4)+".txt";
+		if(!JudgeFileExist(name)){
+			//ファイルが存在していなければ次はそこに書き込むものとする。
+			return name;
+		}
+	}
+	assert(false);//本来ここに来てはいけないので、それを明確に伝える
+	return "SaveData/err.txt";
 }
 
 int BodyPhotographer::Update(){
@@ -32,18 +57,26 @@ int BodyPhotographer::Update(){
 	m_pBodyKinectSensor->Update();
 	//情報の記録をするかのフラグの更新
 	if(keyboard_get(KEY_INPUT_NUMPADENTER)==1){
-		m_fileWriteFlag=!m_fileWriteFlag;
-		if(m_fileWriteFlag){
+		if(!m_fileWriteFlag){
 			//記録開始時はファイルを開き、m_writeCountを0にする
 			m_writeCount=0;
-			m_writeFile.open("SaveData/"+to_string_0d(0,3)+".txt",std::ios_base::trunc);
+			if(!JudgeFileExist(m_writeFileName)){
+				//既存のファイルに上書きが行われないことを確認してからファイルを開く
+				m_writeFile.open(m_writeFileName,std::ios_base::trunc);
+			} else{
+				//既存のファイルの上書きが起こった場合は、出力ファイル名を変える作業のみ行う
+				m_writeFileName=SearchFileName();
+			}
 			if(!m_writeFile){
 				//ファイルを開けなければ記録開始しない
 				m_fileWriteFlag=false;
+			} else{
+				//ファイルが開けば記録を開始する
+				m_fileWriteFlag=true;
 			}
 		} else{
 			//記録終了時はファイルを閉じる
-			m_writeFile.close();
+			FinishFileWrite();
 		}
 	}
 	//ファイル出力
@@ -53,7 +86,7 @@ int BodyPhotographer::Update(){
 		//書き込みすぎ判定
 		m_writeCount++;
 		if(m_writeCount>writeCountMax){
-			m_fileWriteFlag=false;
+			FinishFileWrite();
 		}
 		//body位置の出力
 		m_pBodyKinectSensor->OutputJointPoitions(m_writeFile);
@@ -77,5 +110,6 @@ void BodyPhotographer::Draw()const{
 	//描画命令
 	m_pDepthKinectSensor->Draw(depthPos);
 	m_pBodyKinectSensor->Draw(m_pSensor,depthPos,kinectSize,xyPos,kinectSize,zyPos,kinectSize);
-	
+	//出力先ファイル名を出力
+	DrawStringToHandle(zyPos.x,depthPos.y,("out filename: "+m_writeFileName).c_str(),GetColor(255,255,255),m_font);
 }

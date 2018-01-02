@@ -24,10 +24,16 @@ protected:
 	std::ofstream m_writeFile;//データの書き込み先
 	bool m_fileWriteFlag;//ファイル入力をするかどうか
 	int m_writeCount;//書き込んでいる時間の計測
+	std::string m_writeFileName;//データの書き込みを行うファイル名
+
+	//描画のために用いるデータ
+	int m_font;//フォント
 
 	//関数
 protected:
-	
+	void FinishFileWrite();//ファイル書き込み終了時に呼び出す関数
+	std::string SearchFileName()const;//次に使うファイル名を検索する
+
 public:
 	BodyPhotographer(IKinectSensor *pSensor);
 	~BodyPhotographer();
