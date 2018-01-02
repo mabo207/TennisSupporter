@@ -191,7 +191,7 @@ void IBodyKinectSensor::OutputJointPoitions(std::ofstream &writeFile)const{
 }
 
 void IBodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const{
-	const int circlesize=3;//関節を表す円の半径
+	const int circlesize=6;//関節を表す円の半径
 						   //複数あるbodyそれぞれに対して処理を行う
 	for(size_t j=0;j<bodyNum;j++){
 		//各関節の位置の取得
@@ -231,11 +231,15 @@ void IBodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D d
 		}
 		//各関節の描画
 		for(size_t i=0;i<JointType::JointType_Count;i++){
-			if(pSensor!=nullptr){
-				DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,GetColor(0,255,0),FALSE);//depth画像
+			unsigned int color=GetColor(0,255,0);
+			if(i==JointType_ElbowRight || i==JointType_AnkleRight || i==JointType_FootRight || i==JointType_HandRight || i==JointType_HandTipRight || i==JointType_HipRight || i==JointType_KneeRight || i==JointType_ShoulderRight || i==JointType_ThumbRight || i==JointType_WristRight){
+				color=GetColor(0,128,255);
 			}
-			DrawCircle(jointsXY[i].x,jointsXY[i].y,circlesize,GetColor(0,255,0),FALSE);//xy画像
-			DrawCircle(jointsZY[i].x,jointsZY[i].y,circlesize,GetColor(0,255,0),FALSE);//zy座標
+			if(pSensor!=nullptr){
+				DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,color,TRUE);//depth画像
+			}
+			DrawCircle(jointsXY[i].x,jointsXY[i].y,circlesize,color,FALSE);//xy画像
+			DrawCircle(jointsZY[i].x,jointsZY[i].y,circlesize,color,FALSE);//zy座標
 		}
 		//各ボーンの描画
 		for(const auto &pair:bonePairs){
