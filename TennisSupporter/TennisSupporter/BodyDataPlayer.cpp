@@ -17,7 +17,7 @@ BodyDataPlayer::BodyDataPlayer(int font,const char *filename)
 	//BodyVirtualKinectSensorの起動
 	m_graphSingleData.m_pBodyVirtualKinectSensor=std::shared_ptr<BodyVirtualKinectSensor>(new BodyVirtualKinectSensor());
 	//GraphDataBuilderの起動
-	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0)));
+	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0),m_font));
 	//データの読み取り
 	ReadFile(filename);
 }

@@ -84,10 +84,19 @@ const std::map<JointType,Vector2D> GraphDataBuilder::relativeInputPos={
 	//,std::pair<JointType,Vector2D>(JointType_HandTipRight,Vector2D(50,200))
 	//,std::pair<JointType,Vector2D>(JointType_ThumbRight,Vector2D(50,200))
 };
+const Vector2D GraphDataBuilder::xzVectorBoxPos=Vector2D(10,320);
+const Vector2D GraphDataBuilder::boxSize=Vector2D(200,200);
+const Vector2D GraphDataBuilder::yVectorBoxPos=xzVectorBoxPos+Vector2D(GraphDataBuilder::boxSize.x,0);
+const int GraphDataBuilder::boxCircleSize=50;
+const int GraphDataBuilder::axisSize=70;
+const Vector2D GraphDataBuilder::xzBoxCircleCenterPos=xzVectorBoxPos+boxSize/2;
+const Vector2D GraphDataBuilder::xBoxPos=Vector2D((xzVectorBoxPos+boxSize/2).x+axisSize-squareSize/2,(xzVectorBoxPos+boxSize/2).y-squareSize/2);
+const Vector2D GraphDataBuilder::zBoxPos=Vector2D((xzVectorBoxPos+boxSize/2).x-squareSize/2,(xzVectorBoxPos+boxSize/2).y-axisSize-squareSize/2);
 const int GraphDataBuilder::circleSize=10;
+const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
-GraphDataBuilder::GraphDataBuilder(Vector2D position)
-	:m_position(position),m_inpFrame(0),m_input{JointType_SpineBase}
+GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
+	:m_position(position),m_inpFrame(0),m_font(font),m_input{JointType_SpineBase}
 {
 	//m_dataFactoryの初期化
 	CreateFactory();
@@ -143,6 +152,7 @@ int GraphDataBuilder::Update(){
 }
 
 void GraphDataBuilder::Draw()const{
+	//某人間インターフェースの描画
 	//関節を全て中抜き円で描画
 	for(const std::pair<JointType,Vector2D> &pair:relativeInputPos){
 		const Vector2D v=m_position+pair.second;
@@ -173,7 +183,47 @@ void GraphDataBuilder::Draw()const{
 	for(size_t i=0,max=m_input.size();i+1<max;i++){
 		DrawLine(inpPos[i].x,inpPos[i].y,inpPos[i+1].x,inpPos[i+1].y,GetColor(255,0,0),1);
 	}
-
+	//ベクトル設定インターフェースの描画
+	//大枠
+	const unsigned int xzColor=GetColor(255,255,255),yColor=GetColor(255,255,255);
+	DrawBox((m_position+xzVectorBoxPos).x,(m_position+xzVectorBoxPos).y,(m_position+xzVectorBoxPos+boxSize).x,(m_position+xzVectorBoxPos+boxSize).y
+		,xzColor,FALSE);
+	DrawBox((m_position+yVectorBoxPos).x,(m_position+yVectorBoxPos).y,(m_position+yVectorBoxPos+boxSize).x,(m_position+yVectorBoxPos+boxSize).y
+		,yColor,FALSE);
+	//項目名
+	DrawBox((m_position+xzVectorBoxPos).x,(m_position+xzVectorBoxPos).y,(m_position+xzVectorBoxPos).x+squareSize,(m_position+xzVectorBoxPos).y+squareSize
+		,xzColor,TRUE);
+	DrawStringCenterBaseToHandle((m_position+xzVectorBoxPos).x+squareSize/2,(m_position+xzVectorBoxPos).y+squareSize/2,"xz"
+		,GetInvertedColor(xzColor),m_font,true);
+	DrawBox((m_position+yVectorBoxPos).x,(m_position+yVectorBoxPos).y,(m_position+yVectorBoxPos).x+squareSize,(m_position+yVectorBoxPos).y+squareSize
+		,yColor,TRUE);
+	DrawStringCenterBaseToHandle((m_position+yVectorBoxPos).x+squareSize/2,(m_position+yVectorBoxPos).y+squareSize/2,"y"
+		,GetInvertedColor(yColor),m_font,true);
+	//円弧
+	const unsigned int standardColor=GetColor(0,255,0);
+	DrawCircle((m_position+xzBoxCircleCenterPos).x,(m_position+xzBoxCircleCenterPos).y,boxCircleSize
+		,standardColor,FALSE);
+	//軸
+	DrawLine((m_position+xzBoxCircleCenterPos).x,(m_position+xzBoxCircleCenterPos).y,(m_position+xBoxPos).x+squareSize/2,(m_position+xBoxPos).y+squareSize/2
+		,standardColor);//x軸
+	DrawLine((m_position+xzBoxCircleCenterPos).x,(m_position+xzBoxCircleCenterPos).y,(m_position+zBoxPos).x+squareSize/2,(m_position+zBoxPos).y+squareSize/2
+		,standardColor);//z軸
+	//軸名
+	DrawBox((m_position+xBoxPos).x,(m_position+xBoxPos).y,(m_position+xBoxPos).x+squareSize,(m_position+xBoxPos).y+squareSize
+		,xzColor,TRUE);
+	DrawStringCenterBaseToHandle((m_position+xBoxPos).x+squareSize/2,(m_position+xBoxPos).y+squareSize/2,"x"
+		,GetInvertedColor(standardColor),m_font,true);
+	DrawBox((m_position+zBoxPos).x,(m_position+zBoxPos).y,(m_position+zBoxPos).x+squareSize,(m_position+zBoxPos).y+squareSize
+		,yColor,TRUE);
+	DrawStringCenterBaseToHandle((m_position+zBoxPos).x+squareSize/2,(m_position+zBoxPos).y+squareSize/2,"z"
+		,GetInvertedColor(standardColor),m_font,true);
+	//角度円
+	const double angle=50.0/180*M_PI;
+	DrawCircle((m_position+xzBoxCircleCenterPos).x+(int)(boxCircleSize*std::cos(angle)),(m_position+xzBoxCircleCenterPos).y-(int)(boxCircleSize*std::sin(angle)),circleSize
+		,GetInvertedColor(standardColor),TRUE);
+	//現在の方向直線
+	DrawLine((m_position+xzBoxCircleCenterPos).x,(m_position+xzBoxCircleCenterPos).y,(m_position+xzBoxCircleCenterPos).x+(int)(boxCircleSize*std::cos(angle)),(m_position+xzBoxCircleCenterPos).y-(int)(boxCircleSize*std::sin(angle))
+		,GetInvertedColor(standardColor));
 }
 
 double GraphDataBuilder::CalData(const std::vector<IBodyKinectSensor::JointPosition> &playData)const{

@@ -45,8 +45,17 @@ class GraphDataBuilder{
 
 	//定数
 protected:
+	//某人間インターフェース周り
 	static const std::map<JointType,Vector2D> relativeInputPos;//どのJointTypeがどこの入力円に対応しているかを表すmap。相対座標。
-	static const int circleSize;
+	//ベクトル設定インターフェース周り
+	static const Vector2D xzVectorBoxPos,yVectorBoxPos,boxSize;//xzベクトル設定ボックスの位置,yベクトル設定ボックスの位置、ボックスの大きさ
+	static const int boxCircleSize;//xzベクトル内にある円弧の大きさ
+	static const int axisSize;//xzベクトル内にある軸の長さ
+	static const Vector2D xzBoxCircleCenterPos;//xzベクトル内にある円弧の中心
+	static const Vector2D xBoxPos,zBoxPos;//xzベクトル内にあるx箱,z箱の位置
+	//共用情報
+	static const int circleSize;//出現する円の大きさ
+	static const int squareSize;//出現する正方形の大きさ
 
 	//変数
 protected:
@@ -54,15 +63,20 @@ protected:
 	std::shared_ptr<IDataFactory> m_dataFactory;//どのようにしてデータを作るかを管理する
 
 	//入力周りの管理
+	//某人間インターフェース周り
 	std::vector<JointType> m_input;//マウス左ボタン押しっぱなしで通ったjoint群
+	//ベクトル設定インターフェース周り
+
+	//共用情報
 	int m_inpFrame;//前フレームにおけるマウス左ボタンの押していたフレーム数
-	
+	int m_font;
+
 	//関数
 protected:
 	void CreateFactory();//グラフデータビルダーのインタフェースの入力結果を用いて、m_dataFactoryを作成する関数
 
 public:
-	GraphDataBuilder(Vector2D position);
+	GraphDataBuilder(Vector2D position,int font);
 	~GraphDataBuilder();
 	int Update();//マウス左ボタンを離した瞬間は1を返す
 	void Draw()const;

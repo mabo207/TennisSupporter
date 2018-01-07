@@ -15,7 +15,7 @@ DataAnalyzer::DataAnalyzer(int font,const char *filename)
 	m_playFlag(true),m_graphUnity(false),m_extend(1.0),m_dataAverage(0.0),m_widthUnity(false),m_dataSizeMax(1)
 {
 	//GraphDataBuilderの起動
-	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0)));
+	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2+80,0),m_font));
 	//データの読み取り
 	ReadFile(filename);
 }
@@ -285,7 +285,7 @@ void DataAnalyzer::Draw()const{
 		//グラフの色の設定
 		unsigned int color=GetColor(64*(j%4)+63,64*((j*3%16)/4)+63,64*((j*5%64)/16)+63);
 		//色一覧に描画
-		DrawBox(graphPos.x+graphSize.x+80,330+j*20,graphPos.x+graphSize.x+80+60,330+j*20+10,color,TRUE);
+		DrawBox(graphPos.x+graphSize.x+20,330+j*20,graphPos.x+graphSize.x+20+60,330+j*20+10,color,TRUE);
 		//1フレームに対するピクセル数の計算
 		double frameRateToPixel;
 		if(m_widthUnity){
