@@ -8,9 +8,9 @@
 
 
 //-----------------BodyPhotographer-----------------
-BodyPhotographer::BodyPhotographer(IKinectSensor *pSensor)
-	:IBodySimulateScene(MODE::PHOTOGRAPHER),m_pSensor(pSensor),m_fileWriteFlag(false),m_writeCount(0)
-	,m_font(CreateFontToHandle("メイリオ",32,3,-1))
+BodyPhotographer::BodyPhotographer(int font,IKinectSensor *pSensor)
+	:IBodySimulateScene(MODE::PHOTOGRAPHER,font),m_pSensor(pSensor),m_fileWriteFlag(false),m_writeCount(0)
+	,m_bigFont(CreateFontToHandle("メイリオ",32,3,-1))
 {
 	//BodySensorの起動
 	m_pBodyKinectSensor=std::shared_ptr<BodyKinectSensor>(new BodyKinectSensor(m_pSensor));
@@ -23,7 +23,7 @@ BodyPhotographer::BodyPhotographer(IKinectSensor *pSensor)
 
 BodyPhotographer::~BodyPhotographer(){
 	m_writeFile.close();
-	DeleteFontToHandle(m_font);
+	DeleteFontToHandle(m_bigFont);
 }
 
 void BodyPhotographer::FinishFileWrite(){
@@ -111,5 +111,12 @@ void BodyPhotographer::Draw()const{
 	m_pDepthKinectSensor->Draw(depthPos);
 	m_pBodyKinectSensor->Draw(m_pSensor,depthPos,kinectSize,xyPos,kinectSize,zyPos,kinectSize);
 	//出力先ファイル名を出力
-	DrawStringToHandle(zyPos.x,depthPos.y,("out filename: "+m_writeFileName).c_str(),GetColor(255,255,255),m_font);
+	DrawStringToHandle(zyPos.x,depthPos.y,("out filename: "+m_writeFileName).c_str(),GetColor(255,255,255),m_bigFont);
+	//操作説明の描画(横幅等はテキトー、どうせはみださない)
+	int po=DrawStringNewLineToHandle((zyPos+kinectSize/2).x,zyPos.y,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
+		"Enter : begin photograph\n"
+		"1 : play \"0000.txt\"\n"
+		"2 : analyze \"0000_section.txt\"\n"
+	);
+	int popo=po;
 }

@@ -35,9 +35,9 @@ protected:
 	int m_startSectionIndex;//切り取り区間保持開始の際のフレーム数
 	bool m_graphUnity;//グラフの縦横軸の基準を統一するか
 
-	int m_font;//グラフに表示する文字のfont
+	//int m_font;//グラフに表示する文字のfont(基底クラスのフォントと同じものを用いる)
 
-   //関数
+	//関数
 protected:
 	int CalReadIndex()const;//m_playFrameから、m_playDataのどの番号のデータを読み込めば良いか計算する。
 	double CalPlayFrame(int index)const;//CalReadIndexの逆算

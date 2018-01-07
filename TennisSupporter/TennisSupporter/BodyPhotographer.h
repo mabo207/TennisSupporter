@@ -27,7 +27,7 @@ protected:
 	std::string m_writeFileName;//データの書き込みを行うファイル名
 
 	//描画のために用いるデータ
-	int m_font;//フォント
+	int m_bigFont;//フォント
 
 	//関数
 protected:
@@ -35,7 +35,7 @@ protected:
 	std::string SearchFileName()const;//次に使うファイル名を検索する
 
 public:
-	BodyPhotographer(IKinectSensor *pSensor);
+	BodyPhotographer(int font,IKinectSensor *pSensor);
 	~BodyPhotographer();
 	int Update();
 	void Draw()const;

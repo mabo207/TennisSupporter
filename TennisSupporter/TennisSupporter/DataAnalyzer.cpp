@@ -11,8 +11,8 @@ const Vector2D DataAnalyzer::graphSize=Vector2D(DataAnalyzer::writeCountMax,360)
 const std::string DataAnalyzer::sectionStr="##################";
 
 DataAnalyzer::DataAnalyzer(int font,const char *filename)
-	:IBodySimulateScene(MODE::ANALYZER),m_playFrame(0.0),m_playRate(1.0),
-	m_font(font),m_playFlag(true),m_graphUnity(false),m_extend(1.0),m_dataAverage(0.0),m_widthUnity(false),m_dataSizeMax(1)
+	:IBodySimulateScene(MODE::ANALYZER,font),m_playFrame(0.0),m_playRate(1.0),
+	m_playFlag(true),m_graphUnity(false),m_extend(1.0),m_dataAverage(0.0),m_widthUnity(false),m_dataSizeMax(1)
 {
 	//GraphDataBuilderの起動
 	m_pGraphDataBuilder=std::shared_ptr<GraphDataBuilder>(new GraphDataBuilder(Vector2D(kinectSize.x*2,0)));
@@ -310,6 +310,16 @@ void DataAnalyzer::Draw()const{
 
 	//読み込みデータインターフェースの描画
 	m_pGraphDataBuilder->Draw();
+	//操作説明の描画(横幅等はテキトー、どうせはみださない)
+	DrawStringNewLineToHandle((zyPos+kinectSize/2).x,zyPos.y,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
+		"L click (on body) : set kind of graph\n"
+		"U : convert height mode ( unity / normal )\n"
+		"I : convert width mode ( unity / normal )\n"
+		"Q : reduce extend rate\n"
+		"W : reset extend rate\n"
+		"E : add extend rate\n"
+		"back : return photographer mode\n"
+	);
 }
 
 

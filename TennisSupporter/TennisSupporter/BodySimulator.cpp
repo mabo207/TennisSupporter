@@ -20,7 +20,7 @@ BodySimulator::BodySimulator()
 	BOOLEAN isOpen=false;
 	ErrorCheck(m_pSensor->get_IsOpen(&isOpen),"Kinect is not open.");
 	//m_pSceneの初期化
-	m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
+	m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_font,m_pSensor));
 }
 
 BodySimulator::~BodySimulator(){
@@ -54,13 +54,13 @@ int BodySimulator::Update(){
 	case(IBodySimulateScene::MODE::PLAYER):
 		if(index==1){
 			//場面を録画モードに変更
-			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
+			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_font,m_pSensor));
 		}
 		break;
 	case(IBodySimulateScene::MODE::ANALYZER):
 		if(index==1){
 			//場面を録画モードに変更
-			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_pSensor));
+			m_pScene=std::shared_ptr<IBodySimulateScene>(new BodyPhotographer(m_font,m_pSensor));
 		}
 		break;
 	default:

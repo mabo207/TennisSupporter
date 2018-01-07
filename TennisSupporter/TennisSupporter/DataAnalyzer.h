@@ -31,7 +31,7 @@ protected:
 	double m_dataAverage;//データの平均値
 	size_t m_dataSizeMax;//m_graphDataの各データ群のデータ数のうち最大のもの
 
-	int m_font;//グラフに表示する文字のfont
+	//int m_font;//グラフに表示する文字のfont(基底クラスのフォントと同じものを用いる)
 
 	//関数
 protected:

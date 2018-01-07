@@ -686,7 +686,8 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
 		SetWindowSizeChangeEnableFlag(TRUE);
 		//アイコンの設定
 		SetWindowIconID(101);
-
+		//非アクティブ状態での処理の続行のフラグ
+		SetAlwaysRunFlag(TRUE);
 
 		if(ChangeWindowMode(TRUE) != 0) {
 			throw(std::runtime_error("ChangeWindowMode(TRUE) failed."));

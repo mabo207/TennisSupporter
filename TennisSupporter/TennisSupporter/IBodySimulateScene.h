@@ -28,10 +28,11 @@ public:
 	//•Ï”
 protected:
 	const MODE::TYPE m_type;
+	const int m_font;//à–¾•¶‚ğ•`‰æ‚·‚é‚½‚ß‚ÌƒtƒHƒ“ƒg
 
 	//ŠÖ”
 public:
-	IBodySimulateScene(MODE::TYPE type):m_type(type){}
+	IBodySimulateScene(MODE::TYPE type,int font):m_type(type),m_font(font){}
 	virtual ~IBodySimulateScene(){}
 	virtual int Update()=0;
 	virtual void Draw()const=0;

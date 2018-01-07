@@ -11,8 +11,8 @@ const Vector2D BodyDataPlayer::graphSize=Vector2D(BodyDataPlayer::writeCountMax,
 const std::string BodyDataPlayer::sectionStr="##################";
 
 BodyDataPlayer::BodyDataPlayer(int font,const char *filename)
-	:IBodySimulateScene(MODE::PLAYER),m_playFrame(0.0),m_playRate(1.0),
-	m_font(font),m_playFlag(true),m_beforeRClickFrame(0),m_startSectionIndex(0),m_graphUnity(false)
+	:IBodySimulateScene(MODE::PLAYER,font),m_playFrame(0.0),m_playRate(1.0),
+	m_playFlag(true),m_beforeRClickFrame(0),m_startSectionIndex(0),m_graphUnity(false)
 {
 	//BodyVirtualKinectSensorの起動
 	m_graphSingleData.m_pBodyVirtualKinectSensor=std::shared_ptr<BodyVirtualKinectSensor>(new BodyVirtualKinectSensor());
@@ -335,5 +335,21 @@ void BodyDataPlayer::Draw()const{
 	}
 	//読み込みデータインターフェースの描画
 	m_pGraphDataBuilder->Draw();
+	//操作説明の描画(横幅等はテキトー、どうせはみださない)
+	DrawStringNewLineToHandle((zyPos+kinectSize/2).x,zyPos.y,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
+		"L click (on graph) : set playtime\n"
+		"L click (on body) : set kind of graph\n"
+		"R click : make section\n"
+		"Enter : play from top\n"
+		"shift(R) : convert ( play / stop )\n"
+		"left : rewind\n"
+		"right : put forward\n"
+		"S : save sections\n"
+		"U : convert graph mode ( unity / normal )\n"
+		"Z : reduce playrate\n"
+		"X : reset playrate\n"
+		"C : add playrate\n"
+		"back : return photographer mode\n"
+	);
 }
 
