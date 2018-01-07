@@ -17,7 +17,6 @@ class GraphDataBuilder{
 		virtual double DataMax()const=0;
 		virtual double DataMin()const=0;
 		//静的関数
-		static std::shared_ptr<IDataFactory> CreateFactory(const std::vector<JointType> &input);
 	};
 	//位置に対して用いるクラス
 	struct PosDataFactory:public IDataFactory{
@@ -60,7 +59,7 @@ protected:
 	
 	//関数
 protected:
-	
+	void CreateFactory();//グラフデータビルダーのインタフェースの入力結果を用いて、m_dataFactoryを作成する関数
 
 public:
 	GraphDataBuilder(Vector2D position);

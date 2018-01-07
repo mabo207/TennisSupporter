@@ -5,17 +5,6 @@
 #include"input.h"
 
 //---------------GraphDataBuilder::IDataFactory---------------
-std::shared_ptr<GraphDataBuilder::IDataFactory> GraphDataBuilder::IDataFactory::CreateFactory(const std::vector<JointType> &input){
-	//inputの個数が3個未満かどうかで作る物を変える
-	size_t size=input.size();
-	if(size<1){
-		return std::shared_ptr<IDataFactory>(nullptr);
-	} else if(size<AngleDataFactory::indexNum){
-		return std::shared_ptr<IDataFactory>(new PosDataFactory(input[0]));
-	} else{
-		return std::shared_ptr<IDataFactory>(new AngleDataFactory(input[0],input[1],input[2]));
-	}
-}
 
 //---------------GraphDataBuilder::PosDataFactory---------------
 GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type):type(i_type){}
@@ -98,9 +87,25 @@ const std::map<JointType,Vector2D> GraphDataBuilder::relativeInputPos={
 const int GraphDataBuilder::circleSize=10;
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position)
-	:m_position(position),m_dataFactory(IDataFactory::CreateFactory(std::vector<JointType>{JointType_SpineBase})),m_inpFrame(0){}
+	:m_position(position),m_inpFrame(0),m_input{JointType_SpineBase}
+{
+	//m_dataFactoryの初期化
+	CreateFactory();
+}
 
 GraphDataBuilder::~GraphDataBuilder(){}
+
+void GraphDataBuilder::CreateFactory(){
+	//inputの個数が3個未満かどうかで作る物を変える
+	size_t size=m_input.size();
+	if(size<1){
+		m_dataFactory=std::shared_ptr<IDataFactory>(nullptr);
+	} else if(size<AngleDataFactory::indexNum){
+		m_dataFactory=std::shared_ptr<IDataFactory>(new PosDataFactory(m_input[0]));
+	} else{
+		m_dataFactory=std::shared_ptr<IDataFactory>(new AngleDataFactory(m_input[0],m_input[1],m_input[2]));
+	}
+}
 
 int GraphDataBuilder::Update(){
 	int ret=0;
@@ -124,7 +129,7 @@ int GraphDataBuilder::Update(){
 	} else{
 		if(m_inpFrame>0 && !m_input.empty()){
 			//離された瞬間ならm_dataFactoryを更新する
-			m_dataFactory=IDataFactory::CreateFactory(m_input);
+			CreateFactory();
 			ret=1;
 		}
 		//マウス入力がされていないならm_inputを空に
