@@ -4,6 +4,7 @@
 #include<vector>
 #include<Kinect.h>
 #include<fstream>
+#include<map>
 #include"KinectTools.h"
 
 //BodyKinectSensorの描画・データ構造を表す
@@ -38,8 +39,9 @@ public:
 
 	//定数
 public:
-	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;
-	static const size_t bodyNum=6;
+	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;//体のつながり方を記録する
+	static const size_t bodyNum=6;//Kinectが認識できる人間の上限数
+	static const std::map<_JointType,std::string> jointName;//関節点の単語名
 
 	//変数
 protected:

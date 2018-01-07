@@ -156,6 +156,35 @@ const std::vector<std::pair<_JointType,_JointType>> IBodyKinectSensor::bonePairs
 	std::make_pair<_JointType,_JointType>(JointType_AnkleLeft,JointType_FootLeft)
 };
 
+const std::map<_JointType,std::string> IBodyKinectSensor::jointName={
+	std::make_pair<_JointType,std::string>(JointType_Head,"Head"),
+	std::make_pair<_JointType,std::string>(JointType_Neck,"Neck"),
+	std::make_pair<_JointType,std::string>(JointType_Head,"Head"),
+	std::make_pair<_JointType,std::string>(JointType_SpineShoulder,"SpineShoulder"),
+	std::make_pair<_JointType,std::string>(JointType_ShoulderRight,"ShoulderRight"),
+	std::make_pair<_JointType,std::string>(JointType_ElbowRight,"ElbowRight"),
+	std::make_pair<_JointType,std::string>(JointType_WristRight,"WristRight"),
+	std::make_pair<_JointType,std::string>(JointType_HandRight,"HandRight"),
+	std::make_pair<_JointType,std::string>(JointType_HandTipRight,"HandTipRight"),
+	std::make_pair<_JointType,std::string>(JointType_ThumbRight,"ThumbRight"),
+	std::make_pair<_JointType,std::string>(JointType_ShoulderLeft,"ShoulderLeft"),
+	std::make_pair<_JointType,std::string>(JointType_ElbowLeft,"ElbowLeft"),
+	std::make_pair<_JointType,std::string>(JointType_WristLeft,"WristLeft"),
+	std::make_pair<_JointType,std::string>(JointType_HandLeft,"HandLeft"),
+	std::make_pair<_JointType,std::string>(JointType_HandTipLeft,"HandTipLeft"),
+	std::make_pair<_JointType,std::string>(JointType_ThumbLeft,"ThumbLeft"),
+	std::make_pair<_JointType,std::string>(JointType_SpineMid,"SpineMid"),
+	std::make_pair<_JointType,std::string>(JointType_SpineBase,"SpineBase"),
+	std::make_pair<_JointType,std::string>(JointType_HipRight,"HipRight"),
+	std::make_pair<_JointType,std::string>(JointType_KneeRight,"KneeRight"),
+	std::make_pair<_JointType,std::string>(JointType_AnkleRight,"AnkleRight"),
+	std::make_pair<_JointType,std::string>(JointType_FootRight,"FootRight"),
+	std::make_pair<_JointType,std::string>(JointType_HipLeft,"HipLeft"),
+	std::make_pair<_JointType,std::string>(JointType_KneeLeft,"KneeLeft"),
+	std::make_pair<_JointType,std::string>(JointType_AnkleLeft,"AnkleLeft"),
+	std::make_pair<_JointType,std::string>(JointType_FootLeft,"FootLeft")
+};
+
 bool IBodyKinectSensor::BodyIndexSignificance(size_t bodyIndex)const{
 	//”z—ñŠOŽQÆ‚Ìˆ—
 	if(bodyIndex>=bodyNum){
