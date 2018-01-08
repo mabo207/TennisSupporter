@@ -230,6 +230,13 @@ bool JudgeFileExist(const std::string &str){
 	return flag;
 }
 
+//反転色のカラーコードを取得する
+unsigned int GetInvertedColor(unsigned int color){
+	int r,g,b;
+	GetColor2(color,&r,&g,&b);
+	return GetColor(255-r,255-g,255-b);
+}
+
 //数値変化を様々な式で管理するクラス
 //---Easing---
 Easing::Easing(int i_x,int i_maxflame,TYPE i_type,FUNCTION i_function,double i_degree)
