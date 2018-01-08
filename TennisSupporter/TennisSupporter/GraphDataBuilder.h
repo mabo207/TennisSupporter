@@ -16,6 +16,7 @@ class GraphDataBuilder{
 		virtual void Draw(Vector2D pos)const=0;
 		virtual double DataMax()const=0;
 		virtual double DataMin()const=0;
+		virtual std::vector<JointType> IGetInput()const=0;
 		//静的関数
 	};
 	//位置に対して用いるクラス
@@ -31,6 +32,7 @@ class GraphDataBuilder{
 		double DataMax()const;
 		double DataMin()const;
 		void Draw(Vector2D pos)const;
+		std::vector<JointType> IGetInput()const;
 	};
 	//角度に対して用いるクラス
 	struct AngleDataFactory:public IDataFactory{
@@ -44,6 +46,7 @@ class GraphDataBuilder{
 		double DataMax()const;
 		double DataMin()const;
 		void Draw(Vector2D pos)const;
+		std::vector<JointType> IGetInput()const;
 	};
 
 	//定数
@@ -77,7 +80,7 @@ protected:
 
 	//関数
 protected:
-	void CreateFactory();//グラフデータビルダーのインタフェースの入力結果を用いて、m_dataFactoryを作成する関数
+	void CreateFactory(const std::vector<JointType> &input);//グラフデータビルダーのインタフェースの入力結果を用いて、m_dataFactoryを作成する関数。仮想的な入力も受け付けられるように関節入力は引数で渡す。
 
 public:
 	GraphDataBuilder(Vector2D position,int font);

@@ -28,6 +28,10 @@ void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
 	DrawCircle(v.x,v.y,circleSize,GetColor(255,128,0));
 }
 
+std::vector<JointType> GraphDataBuilder::PosDataFactory::IGetInput()const{
+	return std::vector<JointType>{type};
+}
+
 //---------------GraphDataBuilder::AngleDataFactory---------------
 GraphDataBuilder::AngleDataFactory::AngleDataFactory(JointType point1,JointType point2,JointType point3)
 	:type{point1,point2,point3}{}
@@ -56,6 +60,15 @@ void GraphDataBuilder::AngleDataFactory::Draw(Vector2D pos)const{
 		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),3);
 	}
 
+}
+
+std::vector<JointType> GraphDataBuilder::AngleDataFactory::IGetInput()const{
+	std::vector<JointType> v;
+	v.reserve(indexNum);
+	for(const JointType &j:type){
+		v.push_back(j);
+	}
+	return v;
 }
 
 //---------------GraphDataBuilder---------------
@@ -98,17 +111,17 @@ const int GraphDataBuilder::circleSize=10;
 const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
-	:m_position(position),m_inpFrame(0),m_font(font),m_input{JointType_SpineBase},m_xzAngle(0.0),m_xzOrY(false)
+	:m_position(position),m_inpFrame(0),m_font(font),m_xzAngle(0.0),m_xzOrY(false)
 {
 	//m_dataFactoryの初期化
-	CreateFactory();
+	CreateFactory(std::vector<JointType>{JointType_SpineBase});
 }
 
 GraphDataBuilder::~GraphDataBuilder(){}
 
-void GraphDataBuilder::CreateFactory(){
+void GraphDataBuilder::CreateFactory(const std::vector<JointType> &input){
 	//inputの個数が3個未満かどうかで作る物を変える
-	size_t size=m_input.size();
+	size_t size=input.size();
 	if(size<1){
 		m_dataFactory=std::shared_ptr<IDataFactory>(nullptr);
 	} else if(size<AngleDataFactory::indexNum){
@@ -126,9 +139,9 @@ void GraphDataBuilder::CreateFactory(){
 			nVecZ=0.0;
 		}
 		//dataFactory作成
-		m_dataFactory=std::shared_ptr<IDataFactory>(new PosDataFactory(m_input[0],nVecX,nVecY,nVecZ));
+		m_dataFactory=std::shared_ptr<IDataFactory>(new PosDataFactory(input[0],nVecX,nVecY,nVecZ));
 	} else{
-		m_dataFactory=std::shared_ptr<IDataFactory>(new AngleDataFactory(m_input[0],m_input[1],m_input[2]));
+		m_dataFactory=std::shared_ptr<IDataFactory>(new AngleDataFactory(input[0],input[1],input[2]));
 	}
 }
 
@@ -173,9 +186,15 @@ int GraphDataBuilder::Update(){
 			m_xzOrY=false;
 		}
 	} else{
-		if(m_inpFrame>0 && !m_input.empty()){
+		if(m_inpFrame>0){
 			//離された瞬間ならm_dataFactoryを更新する
-			CreateFactory();
+			if(!m_input.empty()){
+				//棒人間に入力があった場合はその入力を用いる
+				CreateFactory(m_input);
+			} else{
+				//棒人間に入力がない場合は現在の棒人間入力を転用する
+				CreateFactory(m_dataFactory->IGetInput());
+			}
 			ret=1;
 		}
 		//マウス入力がされていないならm_inputを空に
