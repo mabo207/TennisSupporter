@@ -96,7 +96,7 @@ const int GraphDataBuilder::circleSize=10;
 const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
-	:m_position(position),m_inpFrame(0),m_font(font),m_input{JointType_SpineBase}
+	:m_position(position),m_inpFrame(0),m_font(font),m_input{JointType_SpineBase},m_xzAngle(0.0),m_xzOrY(false)
 {
 	//m_dataFactoryの初期化
 	CreateFactory();
@@ -123,6 +123,7 @@ int GraphDataBuilder::Update(){
 	if(mFrame>0){
 		//現在位置の確認
 		Vector2D mousepos=GetMousePointVector2D();
+		//某人間インターフェースについての処理
 		//m_inputに追加するJointTypeを決定する
 		JointType type=JointType_Count;//typeがこの値のままならm_inputに追加しない
 		for(const std::pair<JointType,Vector2D> &pair:relativeInputPos){
@@ -134,6 +135,26 @@ int GraphDataBuilder::Update(){
 		//m_inputの末尾がtypeに一致せず、なおかつm_inputの中身が最大値(AngleDataFactory::indexNum)を超えていない場合追加する
 		if(((m_input.size()==0) || (m_input.back()!=type && m_input.size()<AngleDataFactory::indexNum)) && type!=JointType_Count){
 			m_input.push_back(type);
+		}
+		//ベクトル設定インターフェースについての処理
+		//xzかyのどちらかを選択しているか（それとも変更なしか）を判定して適用
+		if((mousepos-(m_position+xzVectorBoxPos)).x>=0 && (mousepos-(m_position+xzVectorBoxPos)).y>=0 && (mousepos-(m_position+xzVectorBoxPos+boxSize)).x<=0 && (mousepos-(m_position+xzVectorBoxPos+boxSize)).y<=0){
+			m_xzOrY=true;
+			//この場合は角度更新も行う
+			if((mousepos-(m_position+xBoxPos)).x>=0 && (mousepos-(m_position+xBoxPos)).y>=0 && (mousepos-(m_position+xBoxPos)).x<=squareSize && (mousepos-(m_position+xBoxPos)).y<=squareSize){
+				//x軸に一致させるボックスにマウスがある時
+				m_xzAngle=0.0;
+			} else if((mousepos-(m_position+zBoxPos)).x>=0 && (mousepos-(m_position+zBoxPos)).y>=0 && (mousepos-(m_position+zBoxPos)).x<=squareSize && (mousepos-(m_position+zBoxPos)).y<=squareSize){
+				//z軸に一致させるボックスにマウスがある時
+				m_xzAngle=M_PI/2;
+			} else{
+				//いずれの場合でもない時は計算値をそのまま適用する
+				Vector2D v=mousepos-(m_position+xzBoxCircleCenterPos);//円中心からマウスに向かうベクトル
+				v=Vector2D(v.x,-v.y);//人間が見やすい→↑が正となるように変換
+				m_xzAngle=v.GetRadian();
+			}
+		} else if((mousepos-(m_position+yVectorBoxPos)).x>=0 && (mousepos-(m_position+yVectorBoxPos)).y>=0 && (mousepos-(m_position+yVectorBoxPos+boxSize)).x<=0 && (mousepos-(m_position+yVectorBoxPos+boxSize)).y<=0){
+			m_xzOrY=false;
 		}
 	} else{
 		if(m_inpFrame>0 && !m_input.empty()){
@@ -184,8 +205,18 @@ void GraphDataBuilder::Draw()const{
 		DrawLine(inpPos[i].x,inpPos[i].y,inpPos[i+1].x,inpPos[i+1].y,GetColor(255,0,0),1);
 	}
 	//ベクトル設定インターフェースの描画
+	//枠と項目名の色定義
+	//const unsigned int xzColor=GetColor(255,255,255),yColor=GetColor(255,255,255);
+	unsigned int xzColor,yColor;
+	//選択されている方を黄色に
+	if(m_xzOrY){
+		xzColor=GetColor(255,255,0);
+		yColor=GetColor(255,255,255);
+	} else{
+		xzColor=GetColor(255,255,255);
+		yColor=GetColor(255,255,0);
+	}
 	//大枠
-	const unsigned int xzColor=GetColor(255,255,255),yColor=GetColor(255,255,255);
 	DrawBox((m_position+xzVectorBoxPos).x,(m_position+xzVectorBoxPos).y,(m_position+xzVectorBoxPos+boxSize).x,(m_position+xzVectorBoxPos+boxSize).y
 		,xzColor,FALSE);
 	DrawBox((m_position+yVectorBoxPos).x,(m_position+yVectorBoxPos).y,(m_position+yVectorBoxPos+boxSize).x,(m_position+yVectorBoxPos+boxSize).y
@@ -218,7 +249,8 @@ void GraphDataBuilder::Draw()const{
 	DrawStringCenterBaseToHandle((m_position+zBoxPos).x+squareSize/2,(m_position+zBoxPos).y+squareSize/2,"z"
 		,GetInvertedColor(standardColor),m_font,true);
 	//角度円
-	const double angle=50.0/180*M_PI;
+//	const double angle=50.0/180*M_PI;
+	const double angle=m_xzAngle;
 	DrawCircle((m_position+xzBoxCircleCenterPos).x+(int)(boxCircleSize*std::cos(angle)),(m_position+xzBoxCircleCenterPos).y-(int)(boxCircleSize*std::sin(angle)),circleSize
 		,GetInvertedColor(standardColor),TRUE);
 	//現在の方向直線

@@ -66,7 +66,8 @@ protected:
 	//某人間インターフェース周り
 	std::vector<JointType> m_input;//マウス左ボタン押しっぱなしで通ったjoint群
 	//ベクトル設定インターフェース周り
-
+	double m_xzAngle;//xzベクトル設定インターフェースによる角度入力値（反時計回りに正、基準線はx軸横向き）
+	bool m_xzOrY;//xzベクトル(true)かyベクトル(false)のどちらを観測するか
 	//共用情報
 	int m_inpFrame;//前フレームにおけるマウス左ボタンの押していたフレーム数
 	int m_font;
