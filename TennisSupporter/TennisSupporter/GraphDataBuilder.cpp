@@ -141,7 +141,7 @@ void GraphDataBuilder::Draw()const{
 	//ŠÖß‚ğ‘S‚Ä’†”²‚«‰~‚Å•`‰æ
 	for(const std::pair<JointType,Vector2D> &pair:relativeInputPos){
 		const Vector2D v=m_position+pair.second;
-		DrawCircle(v.x,v.y,circleSize,GetColor(0,255,0),FALSE);
+		DrawCircle(v.x,v.y,circleSize,IBodyKinectSensor::GetJointColor(pair.first),FALSE);
 	}
 	//born‚ğ•`‰æ
 	const std::map<JointType,Vector2D>::const_iterator ite=relativeInputPos.end();

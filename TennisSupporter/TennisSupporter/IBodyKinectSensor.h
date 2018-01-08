@@ -61,6 +61,10 @@ public:
 	JointPosition GetJointPosition(size_t bodyIndex,_JointType jointType)const;
 	double GetRadian(_JointType edge,_JointType point1,_JointType point2)const;//‚P”ÔÅ‰‚ÉŒ©‚¦‚ébody‚ğ©“®”»’è‚µ‚ÄÀs
 	double GetRadian(size_t bodyIndex,_JointType edge,_JointType point1,_JointType point2)const;
+
+	//Ã“IŠÖ”
+public:
+	static unsigned int GetJointColor(int type);
 };
 
 #endif // !DEF_IBODYKINECTSENSOR_H

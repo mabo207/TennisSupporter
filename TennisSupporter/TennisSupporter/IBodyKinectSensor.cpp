@@ -129,6 +129,35 @@ double IBodyKinectSensor::JointPosition::CalculateAngle(JointPosition v1,JointPo
 }
 
 //-------------------IBodyKinectSensor-------------------
+unsigned int IBodyKinectSensor::GetJointColor(int type){
+	switch(type){
+	case(JointType_ElbowRight):
+	case(JointType_AnkleRight):
+	case(JointType_FootRight):
+	case(JointType_HandRight):
+	case(JointType_HandTipRight):
+	case(JointType_HipRight):
+	case(JointType_KneeRight):
+	case(JointType_ShoulderRight):
+	case(JointType_ThumbRight):
+	case(JointType_WristRight):
+		return GetColor(0,128,255);
+	case(JointType_ElbowLeft):
+	case(JointType_AnkleLeft):
+	case(JointType_FootLeft):
+	case(JointType_HandLeft):
+	case(JointType_HandTipLeft):
+	case(JointType_HipLeft):
+	case(JointType_KneeLeft):
+	case(JointType_ShoulderLeft):
+	case(JointType_ThumbLeft):
+	case(JointType_WristLeft):
+		return GetColor(255,128,0);
+	default:
+		return GetColor(0,255,0);
+	}
+}
+
 const std::vector<std::pair<_JointType,_JointType>> IBodyKinectSensor::bonePairs={
 	std::make_pair<_JointType,_JointType>(JointType_Head,JointType_Neck),
 	std::make_pair<_JointType,_JointType>(JointType_Neck,JointType_SpineShoulder),
@@ -259,11 +288,8 @@ void IBodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D d
 			jointsZY[i]=Vector2D(jointsZY[i].x,-jointsZY[i].y)+zyPos;//DXライブラリの座標系に変換し、更に絶対位置に変換
 		}
 		//各関節の描画
-		for(size_t i=0;i<JointType::JointType_Count;i++){
-			unsigned int color=GetColor(0,255,0);
-			if(i==JointType_ElbowRight || i==JointType_AnkleRight || i==JointType_FootRight || i==JointType_HandRight || i==JointType_HandTipRight || i==JointType_HipRight || i==JointType_KneeRight || i==JointType_ShoulderRight || i==JointType_ThumbRight || i==JointType_WristRight){
-				color=GetColor(0,128,255);
-			}
+		for(int i=0;i<JointType::JointType_Count;i++){
+			unsigned int color=GetJointColor(i);
 			if(pSensor!=nullptr){
 				DrawCircle(jointsPos[i].x,jointsPos[i].y,circlesize,color,TRUE);//depth画像
 			}
