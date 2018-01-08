@@ -22,9 +22,12 @@ class GraphDataBuilder{
 	struct PosDataFactory:public IDataFactory{
 		//変数
 		const JointType type;
+		const double nVecX;//データ算出の際の法線ベクトルのx要素
+		const double nVecY;//データ算出の際の法線ベクトルのy要素
+		const double nVecZ;//データ算出の際の法線ベクトルのz要素
 		//関数
-		PosDataFactory(JointType i_type);
-		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
+		PosDataFactory(JointType i_type,double i_nVecX,double i_nVecY,double i_nVecZ);
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;//点と平面の距離を算出する。
 		double DataMax()const;
 		double DataMin()const;
 		void Draw(Vector2D pos)const;

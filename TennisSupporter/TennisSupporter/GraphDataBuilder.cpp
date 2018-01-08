@@ -7,18 +7,20 @@
 //---------------GraphDataBuilder::IDataFactory---------------
 
 //---------------GraphDataBuilder::PosDataFactory---------------
-GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type):type(i_type){}
+GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type,double i_nVecX,double i_nVecY,double i_nVecZ):type(i_type),nVecX(i_nVecX),nVecY(i_nVecY),nVecZ(i_nVecZ){}
 
 double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
-	return data[type].Y;
+	//return data[type].Y;
+	//法線ベクトルが(a,b,c)の平面の原点を通る平面の方程式はax+by+cz=0。点(X,Y,Z)と平面の距離は|aX+bY+cZ|/√a^2+b^2+c^2で求められる。
+	return std::abs(nVecX*data[type].X+nVecY*data[type].Y+nVecZ*data[type].Z)/std::sqrt(std::pow(nVecX,2)+std::pow(nVecY,2)+std::pow(nVecZ,2));
 }
 
 double GraphDataBuilder::PosDataFactory::DataMax()const{
-	return 8.000*std::tan(M_PI/6);
+	return 4.5;
 }
 
 double GraphDataBuilder::PosDataFactory::DataMin()const{
-	return -8.000*std::tan(M_PI/6);
+	return -4.5;
 }
 
 void GraphDataBuilder::PosDataFactory::Draw(Vector2D pos)const{
@@ -110,7 +112,21 @@ void GraphDataBuilder::CreateFactory(){
 	if(size<1){
 		m_dataFactory=std::shared_ptr<IDataFactory>(nullptr);
 	} else if(size<AngleDataFactory::indexNum){
-		m_dataFactory=std::shared_ptr<IDataFactory>(new PosDataFactory(m_input[0]));
+		//法線ベクトルの算出
+		double nVecX,nVecY,nVecZ;
+		if(m_xzOrY){
+			//xzベクトルを見る場合
+			nVecX=std::cos(m_xzAngle);
+			nVecY=0.0;
+			nVecZ=std::sin(m_xzAngle);
+		} else{
+			//yベクトルを見る場合
+			nVecX=0.0;
+			nVecY=1.0;
+			nVecZ=0.0;
+		}
+		//dataFactory作成
+		m_dataFactory=std::shared_ptr<IDataFactory>(new PosDataFactory(m_input[0],nVecX,nVecY,nVecZ));
 	} else{
 		m_dataFactory=std::shared_ptr<IDataFactory>(new AngleDataFactory(m_input[0],m_input[1],m_input[2]));
 	}
@@ -241,11 +257,11 @@ void GraphDataBuilder::Draw()const{
 		,standardColor);//z軸
 	//軸名
 	DrawBox((m_position+xBoxPos).x,(m_position+xBoxPos).y,(m_position+xBoxPos).x+squareSize,(m_position+xBoxPos).y+squareSize
-		,xzColor,TRUE);
+		,standardColor,TRUE);
 	DrawStringCenterBaseToHandle((m_position+xBoxPos).x+squareSize/2,(m_position+xBoxPos).y+squareSize/2,"x"
 		,GetInvertedColor(standardColor),m_font,true);
 	DrawBox((m_position+zBoxPos).x,(m_position+zBoxPos).y,(m_position+zBoxPos).x+squareSize,(m_position+zBoxPos).y+squareSize
-		,yColor,TRUE);
+		,standardColor,TRUE);
 	DrawStringCenterBaseToHandle((m_position+zBoxPos).x+squareSize/2,(m_position+zBoxPos).y+squareSize/2,"z"
 		,GetInvertedColor(standardColor),m_font,true);
 	//角度円
