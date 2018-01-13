@@ -239,6 +239,11 @@ void IBodyKinectSensor::OutputJointPoitions(std::ofstream &writeFile)const{
 		//body位置の出力
 		//形式は1行につき、1フレームでのjointPositions[i][j]の各要素を(X,Y,Z)という形式にして出力。
 		for(int j=0;j<bodyNum;j++){
+			if(!BodyIndexSignificance(j)){
+				//j番目のbodyデータが有意ではないなら出力しない
+				continue;
+			}
+			//書き出し
 			for(int i=0;i<JointType_Count;i++){
 				writeFile<<m_jointPositions[j][i].GetString();
 			}
