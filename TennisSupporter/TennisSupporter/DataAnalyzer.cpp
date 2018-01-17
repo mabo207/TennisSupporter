@@ -75,6 +75,7 @@ bool DataAnalyzer::ReadFile(const char *filename){
 				parts="";
 				inBracketsFlag=false;
 			} else if(ch=='#'){
+				//#‚ğ1•¶š“Ç‚ñ‚¾‚çA‚»‚Ìs‚Ì‚»‚êˆÈ~‚Ì•”•ª‚Í“Ç‚İæ‚ç‚È‚¢
 				sectionFlag=true;
 			} else if(!sectionFlag){
 				//sectionStr‚ğ“Ç‚ñ‚Å‚¢‚È‚¢

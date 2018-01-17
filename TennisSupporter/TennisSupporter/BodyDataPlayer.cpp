@@ -157,8 +157,8 @@ void BodyDataPlayer::WriteSections(){
 		int bottom=(int)std::fmax(pair.first,pair.second);
 		//書き出し
 		if(top>=0 && bottom<playdatasize){
-			//区切り文字列と改行の書き出し
-			ofs<<sectionStr<<std::endl;
+			//区切り文字列・ファイル名・フレーム数区画と改行の書き出し
+			ofs<<sectionStr<<m_playDataName<<".txt:"<<top<<"<=t<="<<bottom<<sectionStr<<std::endl;
 			//1フレームずつ書き出し
 			for(int i=top;i<=bottom;i++){
 				m_graphSingleData.m_pBodyVirtualKinectSensor->OutputJointPoitions(ofs,m_graphSingleData.m_playData[i]);
