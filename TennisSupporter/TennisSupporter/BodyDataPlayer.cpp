@@ -229,9 +229,13 @@ int BodyDataPlayer::Update(){
 		}
 	}
 	m_beforeRClickFrame=rframe;
-	//セクションデータ出力操作
+	//セクションデータ
 	if(keyboard_get(KEY_INPUT_S)==10){
+		//セクションデータ出力
 		WriteSections();
+	} else if(keyboard_get(KEY_INPUT_D)==5 && !m_section.empty()){
+		//直前のセクションデータの削除
+		m_section.pop_back();
 	}
 	//グラフの軸基準の切り替え
 	if(keyboard_get(KEY_INPUT_U)==1){
@@ -345,6 +349,7 @@ void BodyDataPlayer::Draw()const{
 		"left : rewind\n"
 		"right : put forward\n"
 		"S : save sections\n"
+		"D : pop_back section data\n"
 		"U : convert graph mode ( unity / normal )\n"
 		"Z : reduce playrate\n"
 		"X : reset playrate\n"

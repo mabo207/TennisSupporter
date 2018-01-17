@@ -30,6 +30,10 @@ void BodyVirtualKinectSensor::OutputJointPoitions(std::ofstream &writeFile,const
 		//body位置の出力
 		//形式は1行につき、1フレームでのjointPositions[i][j]の各要素を(X,Y,Z)という形式にして出力。
 		for(size_t i=0,topsize=frameData.size();i<bodyNum;i++){
+			if(!BodyIndexSignificance(i)){
+				//i番目のbodyデータが有意ではないなら出力しない
+				continue;
+			}
 			//配列の大きさを記録
 			size_t secondsize=0;
 			if(i<topsize){
