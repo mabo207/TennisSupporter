@@ -75,6 +75,7 @@ protected:
 	double m_xzAngle;//xzベクトル設定インターフェースによる角度入力値（反時計回りに正、基準線はx軸横向き）
 	bool m_xzOrY;//xzベクトル(true)かyベクトル(false)のどちらを観測するか
 	//共用情報
+	bool m_updateDataFactoryFlag;//左マウスボタンを離した時にdataFactoryを更新するかどうか
 	int m_inpFrame;//前フレームにおけるマウス左ボタンの押していたフレーム数
 	int m_font;
 

@@ -111,7 +111,7 @@ const int GraphDataBuilder::circleSize=10;
 const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
-	:m_position(position),m_inpFrame(0),m_font(font),m_xzAngle(0.0),m_xzOrY(false)
+	:m_position(position),m_inpFrame(0),m_font(font),m_xzAngle(0.0),m_xzOrY(false),m_updateDataFactoryFlag(false)
 {
 	//m_dataFactoryの初期化
 	CreateFactory(std::vector<JointType>{JointType_SpineBase});
@@ -163,12 +163,17 @@ int GraphDataBuilder::Update(){
 		}
 		//m_inputの末尾がtypeに一致せず、なおかつm_inputの中身が最大値(AngleDataFactory::indexNum)を超えていない場合追加する
 		if(((m_input.size()==0) || (m_input.back()!=type && m_input.size()<AngleDataFactory::indexNum)) && type!=JointType_Count){
+			//要素の追加
 			m_input.push_back(type);
+			//グラフの更新が確定するのでフラグを立てる
+			m_updateDataFactoryFlag=true;
 		}
 		//ベクトル設定インターフェースについての処理
 		//xzかyのどちらかを選択しているか（それとも変更なしか）を判定して適用
 		if((mousepos-(m_position+xzVectorBoxPos)).x>=0 && (mousepos-(m_position+xzVectorBoxPos)).y>=0 && (mousepos-(m_position+xzVectorBoxPos+boxSize)).x<=0 && (mousepos-(m_position+xzVectorBoxPos+boxSize)).y<=0){
 			m_xzOrY=true;
+			//グラフの更新が確定するのでフラグを立てる
+			m_updateDataFactoryFlag=true;
 			//この場合は角度更新も行う
 			if((mousepos-(m_position+xBoxPos)).x>=0 && (mousepos-(m_position+xBoxPos)).y>=0 && (mousepos-(m_position+xBoxPos)).x<=squareSize && (mousepos-(m_position+xBoxPos)).y<=squareSize){
 				//x軸に一致させるボックスにマウスがある時
@@ -184,10 +189,12 @@ int GraphDataBuilder::Update(){
 			}
 		} else if((mousepos-(m_position+yVectorBoxPos)).x>=0 && (mousepos-(m_position+yVectorBoxPos)).y>=0 && (mousepos-(m_position+yVectorBoxPos+boxSize)).x<=0 && (mousepos-(m_position+yVectorBoxPos+boxSize)).y<=0){
 			m_xzOrY=false;
+			//グラフの更新が確定するのでフラグを立てる
+			m_updateDataFactoryFlag=true;
 		}
 	} else{
-		if(m_inpFrame>0){
-			//離された瞬間ならm_dataFactoryを更新する
+		if(m_inpFrame>0 && m_updateDataFactoryFlag){
+			//離された瞬間かつ、グラフの更新がされているならm_dataFactoryを更新する
 			if(!m_input.empty()){
 				//棒人間に入力があった場合はその入力を用いる
 				CreateFactory(m_input);
@@ -197,8 +204,10 @@ int GraphDataBuilder::Update(){
 			}
 			ret=1;
 		}
-		//マウス入力がされていないならm_inputを空に
+		//m_inputを空に
 		m_input.clear();
+		//左マウスボタンを押していない時はm_dataFactoryの更新のフラグをfalseにしておく
+		m_updateDataFactoryFlag=false;
 	}
 
 	//前フレームにおけるフレーム数の更新
