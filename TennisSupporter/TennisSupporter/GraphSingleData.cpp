@@ -40,3 +40,22 @@ void GraphSingleData::UpdateVirtualSensor(const int index){
 		m_pBodyVirtualKinectSensor->Update(m_playData[index]);
 	}
 }
+
+void GraphSingleData::WriteGraphSingleData(std::ofstream &writeFile)const{
+	//m_dataを1行に出力する。
+	if(!writeFile.is_open()){
+		//出力できない場合はreturn
+		return;
+	}
+	for(std::vector<double>::const_iterator it=m_data.begin(),itb=m_data.begin(),ite=m_data.end();it!=ite;it++){
+		//","の出力
+		if(it!=itb){
+			//先頭イテレータのみ出力しない
+			writeFile<<",";
+		}
+		//数値の出力
+		writeFile<<(*it);
+	}
+	//全て出力したら改行出力
+	writeFile<<std::endl;
+}

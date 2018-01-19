@@ -32,6 +32,7 @@ protected:
 	size_t m_dataSizeMax;//m_graphDataの各データ群のデータ数のうち最大のもの
 
 	//int m_font;//グラフに表示する文字のfont(基底クラスのフォントと同じものを用いる)
+	std::string m_playDataName;//再生しているデータのファイル名(拡張子を除く)
 
 	//関数
 protected:
@@ -42,6 +43,7 @@ protected:
 	bool JudgeMouseInGraph()const;
 	void UpdateImage();
 	void UpdateImage(int index);
+	void OutputGraphData()const;//現在表示しているグラフデータのcsv出力
 	
 public:
 	DataAnalyzer(int font,const char *filename);

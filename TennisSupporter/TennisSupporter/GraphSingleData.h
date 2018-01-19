@@ -19,6 +19,7 @@ struct GraphSingleData{
 	~GraphSingleData();
 	void DataBuild(std::shared_ptr<const GraphDataBuilder> pGraphDataBuilder);
 	void UpdateVirtualSensor(const int index);
+	void WriteGraphSingleData(std::ofstream &wirteFile)const;
 };
 
 #endif // !DEF_GRAPHSINGLEDATA_H

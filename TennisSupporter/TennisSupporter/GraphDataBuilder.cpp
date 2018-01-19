@@ -32,6 +32,24 @@ std::vector<JointType> GraphDataBuilder::PosDataFactory::IGetInput()const{
 	return std::vector<JointType>{type};
 }
 
+std::string GraphDataBuilder::PosDataFactory::IGetFactoryType()const{
+	std::string str="pos_"+IBodyKinectSensor::jointName.find(type)->second;
+	const double pal[3]={nVecX,nVecY,nVecZ};
+	const std::string index[3]={"_X","_Y","_Z"};
+	for(size_t j=0;j<3;j++){
+		std::string s=std::to_string(pal[j]);
+		//小数点を'-'に置換。1文字変換なのでラクをする。
+		for(size_t i=0,size=s.size();i<size;i++){
+			if(s[i]=='.'){
+				s[i]='-';
+			}
+		}
+		//これを用いてindexと共に出力
+		str+=(index[j]+s);
+	}
+	return str;
+}
+
 //---------------GraphDataBuilder::AngleDataFactory---------------
 GraphDataBuilder::AngleDataFactory::AngleDataFactory(JointType point1,JointType point2,JointType point3)
 	:type{point1,point2,point3}{}
@@ -69,6 +87,14 @@ std::vector<JointType> GraphDataBuilder::AngleDataFactory::IGetInput()const{
 		v.push_back(j);
 	}
 	return v;
+}
+
+std::string GraphDataBuilder::AngleDataFactory::IGetFactoryType()const{
+	std::string str="angle";
+	for(const JointType &t:type){
+		str+=("_"+IBodyKinectSensor::jointName.find(t)->second);
+	}
+	return str;
 }
 
 //---------------GraphDataBuilder---------------
@@ -312,4 +338,8 @@ double GraphDataBuilder::DataMax()const{
 
 double GraphDataBuilder::DataMin()const{
 	return m_dataFactory->DataMin();
+}
+
+std::string GraphDataBuilder::GetFactoryType()const{
+	return m_dataFactory->IGetFactoryType();
 }

@@ -17,6 +17,7 @@ class GraphDataBuilder{
 		virtual double DataMax()const=0;
 		virtual double DataMin()const=0;
 		virtual std::vector<JointType> IGetInput()const=0;
+		virtual std::string IGetFactoryType()const=0;
 		//静的関数
 	};
 	//位置に対して用いるクラス
@@ -33,6 +34,7 @@ class GraphDataBuilder{
 		double DataMin()const;
 		void Draw(Vector2D pos)const;
 		std::vector<JointType> IGetInput()const;
+		std::string IGetFactoryType()const;
 	};
 	//角度に対して用いるクラス
 	struct AngleDataFactory:public IDataFactory{
@@ -47,6 +49,7 @@ class GraphDataBuilder{
 		double DataMin()const;
 		void Draw(Vector2D pos)const;
 		std::vector<JointType> IGetInput()const;
+		std::string IGetFactoryType()const;
 	};
 
 	//定数
@@ -91,6 +94,7 @@ public:
 	double CalData(const std::vector<IBodyKinectSensor::JointPosition> &playData)const;
 	double DataMax()const;
 	double DataMin()const;
+	std::string GetFactoryType()const;
 };
 
 #endif // !DEF_GRAPHDATABUILDER_H

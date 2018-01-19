@@ -119,6 +119,20 @@ bool DataAnalyzer::ReadFile(const char *filename){
 	//再生データの初期化
 	m_playFlag=true;
 	
+	//ファイル名を拡張子以外保存
+	std::string fname(filename);
+	size_t index=0;
+	for(size_t size=fname.size();index<size;index++){
+		if(fname[index]=='.'){
+			break;
+		}
+	}
+	m_playDataName.clear();
+	m_playDataName.reserve(index);
+	for(size_t i=0;i<index;i++){
+		m_playDataName.push_back(fname[i]);
+	}
+
 	return true;
 }
 
@@ -164,6 +178,30 @@ void DataAnalyzer::UpdateImage(){
 void DataAnalyzer::UpdateImage(int index){
 	for(GraphSingleData &gdata:m_graphData){
 		gdata.UpdateVirtualSensor(index);
+	}
+}
+
+void DataAnalyzer::OutputGraphData()const{
+	//ファイル名の作成
+	std::string fname=m_playDataName+"_"+m_pGraphDataBuilder->GetFactoryType()+".csv";
+	//書き出しファイルをオープン
+	if(JudgeFileExist(fname)){
+		//同一ファイル名が既に存在していたら、特に何もしない
+
+	} else{
+		//存在していないなら
+		std::ofstream writeFile(fname,std::ios_base::trunc);
+		if(!writeFile){
+			//ファイルを開くのを失敗したら、特に何もしない
+
+		} else{
+			//正常に書き込みができる
+			for(const GraphSingleData &gdata:m_graphData){
+				//1行に1つのデータ系列ずつ書き出し
+				gdata.WriteGraphSingleData(writeFile);
+			}
+		}
+		writeFile.close();
 	}
 }
 
@@ -250,6 +288,10 @@ int DataAnalyzer::Update(){
 		}
 		m_extend=m_extend+speed;
 	}
+	//現在表示しているグラフをcsv出力
+	if(keyboard_get(KEY_INPUT_S)==10){
+		OutputGraphData();
+	}
 
 	//場面遷移
 	if(keyboard_get(KEY_INPUT_BACK)==1){
@@ -319,8 +361,12 @@ void DataAnalyzer::Draw()const{
 		"Q : reduce extend rate\n"
 		"W : reset extend rate\n"
 		"E : add extend rate\n"
+		"S : output graph\n"
 		"back : return photographer mode\n"
 	);
+
+	//書き出しデータファイル名
+	DrawStringToHandle(200,800,(m_playDataName+"_"+m_pGraphDataBuilder->GetFactoryType()+".csv").c_str(),GetColor(255,255,255),m_font);
 }
 
 
