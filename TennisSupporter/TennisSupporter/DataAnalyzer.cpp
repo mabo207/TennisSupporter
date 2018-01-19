@@ -20,6 +20,14 @@ DataAnalyzer::DataAnalyzer(int font,const char *filename)
 	ReadFile(filename);
 }
 
+DataAnalyzer::DataAnalyzer(int font,const char *filename,std::shared_ptr<GraphDataBuilder> pCopyDataBuilder)
+	:IBodySimulateScene(MODE::ANALYZER,font),m_playFrame(0.0),m_playRate(1.0),
+	m_playFlag(true),m_graphUnity(false),m_extend(1.0),m_dataAverage(0.0),m_widthUnity(false),m_dataSizeMax(1),m_pGraphDataBuilder(pCopyDataBuilder)
+{
+	//データの読み取り
+	ReadFile(filename);
+}
+
 DataAnalyzer::~DataAnalyzer(){}
 
 bool DataAnalyzer::ReadFile(const char *filename){
@@ -184,13 +192,18 @@ void DataAnalyzer::UpdateImage(int index){
 void DataAnalyzer::OutputGraphData()const{
 	//ファイル名の作成
 	std::string fname=m_playDataName+"_"+m_pGraphDataBuilder->GetFactoryType()+".csv";
+	//書き出し
+	OutputGraphData(fname.c_str());
+}
+
+void DataAnalyzer::OutputGraphData(const char *filename)const{
 	//書き出しファイルをオープン
-	if(JudgeFileExist(fname)){
+	if(JudgeFileExist(filename)){
 		//同一ファイル名が既に存在していたら、特に何もしない
 
 	} else{
 		//存在していないなら
-		std::ofstream writeFile(fname,std::ios_base::trunc);
+		std::ofstream writeFile(filename,std::ios_base::trunc);
 		if(!writeFile){
 			//ファイルを開くのを失敗したら、特に何もしない
 
@@ -202,6 +215,32 @@ void DataAnalyzer::OutputGraphData()const{
 			}
 		}
 		writeFile.close();
+	}
+}
+
+void DataAnalyzer::InputToOutputFolder()const{
+	//読み取り元、書き出し先フォルダ名生成規則
+	const std::string inpDir="Input/",outDir="Output/";
+	const std::string fName[]={
+		"A-suburi",
+		"A-serve",
+		"B-suburi",
+		"B-serve",
+		"C-suburi",
+		"C-serve",
+		"D-suburi",
+		"D-serve",
+		"E-suburi",
+		"E-serve",
+		"F-suburi",
+		"F-serve",
+		"G-suburi",
+		"G-serve"
+	};
+	//書き出し
+	for(const std::string &fname:fName){
+		DataAnalyzer d(-1,(inpDir+fname+".txt").c_str(),m_pGraphDataBuilder);
+		d.OutputGraphData((outDir+fname+"_"+m_pGraphDataBuilder->GetFactoryType()+".csv").c_str());
 	}
 }
 
@@ -288,9 +327,13 @@ int DataAnalyzer::Update(){
 		}
 		m_extend=m_extend+speed;
 	}
-	//現在表示しているグラフをcsv出力
+	//csv出力
 	if(keyboard_get(KEY_INPUT_S)==10){
+		//現在表示しているグラフをcsv出力
 		OutputGraphData();
+	} else if(keyboard_get(KEY_INPUT_A)==20){
+		//Inputにあるデータのグラフ化をOutputに出力
+		InputToOutputFolder();
 	}
 
 	//場面遷移
@@ -362,6 +405,7 @@ void DataAnalyzer::Draw()const{
 		"W : reset extend rate\n"
 		"E : add extend rate\n"
 		"S : output graph\n"
+		"A : output files of Input directory to OutputDirectory\n"
 		"back : return photographer mode\n"
 	);
 

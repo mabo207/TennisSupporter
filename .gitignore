@@ -58,6 +58,8 @@ Temporary Items
 /TennisSupporter/TennisSupporter/Release
 /TennisSupporter/TennisSupporter/Log.txt
 /TennisSupporter/TennisSupporter/SaveData
+/TennisSupporter/TennisSupporter/Input
+/TennisSupporter/TennisSupporter/Output
 
 
 #exclude by file type

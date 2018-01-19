@@ -44,12 +44,16 @@ protected:
 	void UpdateImage();
 	void UpdateImage(int index);
 	void OutputGraphData()const;//現在表示しているグラフデータのcsv出力
+	void InputToOutputFolder()const;//現在のグラフ生成方法を用いて、Inputディレクトリ内のファイルをグラフ化したデータをOutputフォルダに吐き出す
 	
 public:
 	DataAnalyzer(int font,const char *filename);
+	DataAnalyzer(int font,const char *filename,std::shared_ptr<GraphDataBuilder> pCopyDataBuilder);//グラフ製作方法をコピーしてAnalyzerを作る
 	~DataAnalyzer();
 	int Update();
 	void Draw()const;
+	void OutputGraphData(const char *filename)const;//現在表示しているグラフデータのcsv出力
+
 };
 
 
