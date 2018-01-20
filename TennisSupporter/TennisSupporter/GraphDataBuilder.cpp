@@ -97,6 +97,150 @@ std::string GraphDataBuilder::AngleDataFactory::IGetFactoryType()const{
 	return str;
 }
 
+//---------------GraphDataBuilder::LengthDataFactory---------------
+GraphDataBuilder::LengthDataFactory::LengthDataFactory(JointType point1,JointType point2,bool i_xFlag,bool i_yFlag,bool i_zFlag)
+	:xFlag(i_xFlag),yFlag(i_yFlag),zFlag(i_zFlag),type{point1,point2}{}
+
+double GraphDataBuilder::LengthDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
+	const double dx=xFlag ? (double)(data[type[1]].X-data[type[0]].X) : 0.0;
+	const double dy=yFlag ? (double)(data[type[1]].Y-data[type[0]].Y) : 0.0;
+	const double dz=zFlag ? (double)(data[type[1]].Z-data[type[0]].Z) : 0.0;
+	return std::sqrt(dx*dx+dy*dy+dz*dz);
+}
+
+double GraphDataBuilder::LengthDataFactory::DataMax()const{
+	return 13.5;
+}
+
+double GraphDataBuilder::LengthDataFactory::DataMin()const{
+	return 0.0;
+}
+
+void GraphDataBuilder::LengthDataFactory::Draw(Vector2D pos)const{
+	Vector2D v[indexNum];
+	//塗りつぶし
+	for(size_t i=0;i<indexNum;i++){
+		v[i]=relativeInputPos.find(type[i])->second+pos;
+		DrawCircle(v[i].x,v[i].y,circleSize,GetColor(0,128,255));
+	}
+	//線を引く
+	for(size_t i=0;i<indexNum-1;i++){
+		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),3);
+	}
+
+}
+
+std::vector<JointType> GraphDataBuilder::LengthDataFactory::IGetInput()const{
+	std::vector<JointType> v;
+	v.reserve(indexNum);
+	for(const JointType &j:type){
+		v.push_back(j);
+	}
+	return v;
+}
+
+std::string GraphDataBuilder::LengthDataFactory::IGetFactoryType()const{
+	std::string str="length";
+	str+=(xFlag?"_x":"");
+	str+=(yFlag?"_y":"");
+	str+=(zFlag?"_z":"");
+	for(const JointType &t:type){
+		str+=("_"+IBodyKinectSensor::jointName.find(t)->second);
+	}
+	return str;
+}
+
+//---------------GraphDataBuilder::SlopeDataFactory---------------
+GraphDataBuilder::SlopeDataFactory::SlopeDataFactory(JointType point1,JointType point2,ElementType i_dividedEle,ElementType i_divideEle)
+	:divideEle(i_divideEle),dividedEle(i_dividedEle),type{point1,point2}{}
+
+double GraphDataBuilder::SlopeDataFactory::CalculateDiff(ElementType ele,const std::vector<IBodyKinectSensor::JointPosition> &data)const{
+	switch(ele){
+	case(elX):
+		return (double)(data[type[1]].X-data[type[0]].X);
+		break;
+	case(elY):
+		return (double)(data[type[1]].Y-data[type[0]].Y);
+		break;
+	case(elZ):
+		return (double)(data[type[1]].Z-data[type[0]].Z);
+		break;
+	}
+	return 0.0;
+}
+
+std::string GraphDataBuilder::SlopeDataFactory::ElementToStr(ElementType ele)const{
+	switch(ele){
+	case(elX):
+		return "x";
+		break;
+	case(elY):
+		return "y";
+		break;
+	case(elZ):
+		return "z";
+		break;
+	}
+	return "";
+
+}
+
+double GraphDataBuilder::SlopeDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
+	double divided=CalculateDiff(dividedEle,data),divide=CalculateDiff(divideEle,data);
+	if(divide!=0.0){
+		//0除算でない時
+		return divided/divide;
+	} else{
+		//0除算はdataMax,0.0,dataMinを返す
+		if(divided>0.0){
+			return DataMax();
+		} else if(divided==0.0){
+			return 0.0;
+		} else{
+			return DataMin();
+		}
+	}
+}
+
+double GraphDataBuilder::SlopeDataFactory::DataMax()const{
+	return 100.0;
+}
+
+double GraphDataBuilder::SlopeDataFactory::DataMin()const{
+	return -100.0;
+}
+
+void GraphDataBuilder::SlopeDataFactory::Draw(Vector2D pos)const{
+	Vector2D v[indexNum];
+	//塗りつぶし
+	for(size_t i=0;i<indexNum;i++){
+		v[i]=relativeInputPos.find(type[i])->second+pos;
+		DrawCircle(v[i].x,v[i].y,circleSize,GetColor(0,128,255));
+	}
+	//線を引く
+	for(size_t i=0;i<indexNum-1;i++){
+		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),3);
+	}
+
+}
+
+std::vector<JointType> GraphDataBuilder::SlopeDataFactory::IGetInput()const{
+	std::vector<JointType> v;
+	v.reserve(indexNum);
+	for(const JointType &j:type){
+		v.push_back(j);
+	}
+	return v;
+}
+
+std::string GraphDataBuilder::SlopeDataFactory::IGetFactoryType()const{
+	std::string str="slope_"+ElementToStr(dividedEle)+"_divided_"+ElementToStr(divideEle);
+	for(const JointType &t:type){
+		str+=("_"+IBodyKinectSensor::jointName.find(t)->second);
+	}
+	return str;
+}
+
 //---------------GraphDataBuilder---------------
 const std::map<JointType,Vector2D> GraphDataBuilder::relativeInputPos={
 	std::pair<JointType,Vector2D>(JointType_SpineBase,Vector2D(105,200))
@@ -157,7 +301,7 @@ void GraphDataBuilder::CreateFactory(const std::vector<JointType> &input){
 	size_t size=input.size();
 	if(size<1){
 		m_dataFactory=std::shared_ptr<IDataFactory>(nullptr);
-	} else if(size<AngleDataFactory::indexNum){
+	} else if(size<SlopeDataFactory::indexNum){
 		//法線ベクトルの算出
 		double nVecX,nVecY,nVecZ;
 		if(m_xzOrY){
@@ -173,7 +317,22 @@ void GraphDataBuilder::CreateFactory(const std::vector<JointType> &input){
 		}
 		//dataFactory作成
 		m_dataFactory=std::shared_ptr<IDataFactory>(new PosDataFactory(input[0],nVecX,nVecY,nVecZ));
+	} else if(size<AngleDataFactory::indexNum){
+		//2点選択インターフェースの入力
+		switch(m_twoPointCalKind){
+		case(TwoPointCalKind::LENGTH):
+			m_dataFactory=std::shared_ptr<IDataFactory>(new LengthDataFactory(input[0],input[1],m_xLengthFlag,m_yLengthFlag,m_zLengthFlag));
+			break;
+		case(TwoPointCalKind::TAN):
+			switch(m_tanCalKind){
+			case(TanCalKind::ZDIVX):
+				m_dataFactory=std::shared_ptr<IDataFactory>(new SlopeDataFactory(input[0],input[1],SlopeDataFactory::elZ,SlopeDataFactory::elX));
+				break;
+			}
+			break;
+		}
 	} else{
+		//角度計算でdataFactoryで作成
 		m_dataFactory=std::shared_ptr<IDataFactory>(new AngleDataFactory(input[0],input[1],input[2]));
 	}
 }
@@ -246,6 +405,8 @@ int GraphDataBuilder::Update(){
 					m_zLengthFlag=!m_zLengthFlag;
 					break;
 				}
+				//グラフの更新が確定するのでフラグを立てる
+				m_updateDataFactoryFlag=true;
 			}
 			//tan計算インターフェース
 			Vector2D tv=mousepos-(m_position+tanBoxPos);//tan vector
@@ -259,6 +420,8 @@ int GraphDataBuilder::Update(){
 					m_tanCalKind=TanCalKind::ZDIVX;
 					break;
 				}
+				//グラフの更新が確定するのでフラグを立てる
+				m_updateDataFactoryFlag=true;
 			}
 
 		}
@@ -373,7 +536,7 @@ void GraphDataBuilder::Draw()const{
 		,GetInvertedColor(standardColor));
 
 	//2関節点回りのインターフェースの描画
-	unsigned int lengthColor=GetColor(255,255,255),tanColor=GetColor(255,255,255),twoBoxBackColor=GetColor(192,192,192);
+	unsigned int lengthColor=GetColor(255,255,255),tanColor=GetColor(255,255,255),twoBoxBackColor=GetColor(96,96,96);
 	const int lengthCount=3;
 	const char lengthStr[][lengthCount]={"x","y","z"};
 	const bool lengthFlag[lengthCount]={m_xLengthFlag,m_yLengthFlag,m_zLengthFlag};

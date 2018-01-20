@@ -51,6 +51,51 @@ class GraphDataBuilder{
 		std::vector<JointType> IGetInput()const;
 		std::string IGetFactoryType()const;
 	};
+	//距離に対して用いるクラス
+	struct LengthDataFactory:public IDataFactory{
+		//定数
+		static const size_t indexNum=2;
+		//変数
+		const JointType type[indexNum];
+		const bool xFlag;//x成分を計算するか
+		const bool yFlag;//y成分を計算するか
+		const bool zFlag;//z成分を計算するか
+		//関数
+		LengthDataFactory(JointType point1,JointType point2,bool i_xFlag,bool i_yFlag,bool i_zFlag);
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
+		double DataMax()const;
+		double DataMin()const;
+		void Draw(Vector2D pos)const;
+		std::vector<JointType> IGetInput()const;
+		std::string IGetFactoryType()const;
+	};
+	//に対して用いるクラス
+	struct SlopeDataFactory:public IDataFactory{
+		enum ElementType{
+			elX,
+			elY,
+			elZ
+		};
+		//定数
+		static const size_t indexNum=2;
+		//変数
+		const JointType type[indexNum];
+		const ElementType divideEle;
+		const ElementType dividedEle;
+		//関数
+	private:
+		double CalculateDiff(ElementType ele,const std::vector<IBodyKinectSensor::JointPosition> &data)const;
+		std::string ElementToStr(ElementType ele)const;
+	public:
+		SlopeDataFactory(JointType point1,JointType point2,ElementType i_dividedEle,ElementType i_divideEle);
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
+		double DataMax()const;
+		double DataMin()const;
+		void Draw(Vector2D pos)const;
+		std::vector<JointType> IGetInput()const;
+		std::string IGetFactoryType()const;
+	};
+
 
 	//インターフェースで用いる列挙体
 	struct TanCalKind{
