@@ -133,11 +133,18 @@ const int GraphDataBuilder::axisSize=70;
 const Vector2D GraphDataBuilder::xzBoxCircleCenterPos=xzVectorBoxPos+boxSize/2;
 const Vector2D GraphDataBuilder::xBoxPos=Vector2D((xzVectorBoxPos+boxSize/2).x+axisSize-squareSize/2,(xzVectorBoxPos+boxSize/2).y-squareSize/2);
 const Vector2D GraphDataBuilder::zBoxPos=Vector2D((xzVectorBoxPos+boxSize/2).x-squareSize/2,(xzVectorBoxPos+boxSize/2).y-axisSize-squareSize/2);
+const Vector2D GraphDataBuilder::lengthBoxPos=xzVectorBoxPos+Vector2D(0,boxCircleSize+boxSize.y);
+const Vector2D GraphDataBuilder::twoPointBoxSize=boxSize/2;
+const Vector2D GraphDataBuilder::tanBoxPos=lengthBoxPos+Vector2D(0,twoPointBoxSize.y);
 const int GraphDataBuilder::circleSize=10;
 const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
+const std::string GraphDataBuilder::TanCalKind::str[END]={"z/x"};
+const std::string GraphDataBuilder::TwoPointCalKind::str[END]={"length","tan"};
+
 GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
-	:m_position(position),m_inpFrame(0),m_font(font),m_xzAngle(0.0),m_xzOrY(false),m_updateDataFactoryFlag(false)
+	:m_position(position),m_inpFrame(0),m_font(font),m_xzAngle(0.0),m_xzOrY(false),m_updateDataFactoryFlag(false),
+	m_twoPointCalKind(TwoPointCalKind::LENGTH),m_xLengthFlag(true),m_yLengthFlag(false),m_zLengthFlag(true),m_tanCalKind(TanCalKind::ZDIVX)
 {
 	//m_dataFactoryの初期化
 	CreateFactory(std::vector<JointType>{JointType_SpineBase});
@@ -218,6 +225,43 @@ int GraphDataBuilder::Update(){
 			//グラフの更新が確定するのでフラグを立てる
 			m_updateDataFactoryFlag=true;
 		}
+		//2点選択処理インターフェースについての処理
+		if(mFrame==1){
+			//左クリックの瞬間のみ判定を行う
+			//距離計算インターフェース
+			Vector2D lv=mousepos-(m_position+lengthBoxPos);//length vector
+			int lc=lv.x/twoPointBoxSize.x;//length count
+			if(lv.y>=0 && lv.y<=twoPointBoxSize.y && lc>=0 && lc<4){
+				//四角内にあれば計算方法の切り替え
+				m_twoPointCalKind=TwoPointCalKind::LENGTH;
+				//計算対象のONOFF切り替え
+				switch(lc){
+				case(1):
+					m_xLengthFlag=!m_xLengthFlag;
+					break;
+				case(2):
+					m_yLengthFlag=!m_yLengthFlag;
+					break;
+				case(3):
+					m_zLengthFlag=!m_zLengthFlag;
+					break;
+				}
+			}
+			//tan計算インターフェース
+			Vector2D tv=mousepos-(m_position+tanBoxPos);//tan vector
+			int tc=tv.x/twoPointBoxSize.x;//tan count
+			if(tv.y>=0 && tv.y<=twoPointBoxSize.y && tc>=0 && tc<4){
+				//四角内にあれば計算方法の切り替え
+				m_twoPointCalKind=TwoPointCalKind::TAN;
+				//計算対象のONOFF切り替え
+				switch(lc){
+				case(1):
+					m_tanCalKind=TanCalKind::ZDIVX;
+					break;
+				}
+			}
+
+		}
 	} else{
 		if(m_inpFrame>0 && m_updateDataFactoryFlag){
 			//離された瞬間かつ、グラフの更新がされているならm_dataFactoryを更新する
@@ -274,6 +318,7 @@ void GraphDataBuilder::Draw()const{
 	for(size_t i=0,max=m_input.size();i+1<max;i++){
 		DrawLine(inpPos[i].x,inpPos[i].y,inpPos[i+1].x,inpPos[i+1].y,GetColor(255,0,0),1);
 	}
+
 	//ベクトル設定インターフェースの描画
 	//枠と項目名の色定義
 	//const unsigned int xzColor=GetColor(255,255,255),yColor=GetColor(255,255,255);
@@ -326,6 +371,41 @@ void GraphDataBuilder::Draw()const{
 	//現在の方向直線
 	DrawLine((m_position+xzBoxCircleCenterPos).x,(m_position+xzBoxCircleCenterPos).y,(m_position+xzBoxCircleCenterPos).x+(int)(boxCircleSize*std::cos(angle)),(m_position+xzBoxCircleCenterPos).y-(int)(boxCircleSize*std::sin(angle))
 		,GetInvertedColor(standardColor));
+
+	//2関節点回りのインターフェースの描画
+	unsigned int lengthColor=GetColor(255,255,255),tanColor=GetColor(255,255,255),twoBoxBackColor=GetColor(192,192,192);
+	const int lengthCount=3;
+	const char lengthStr[][lengthCount]={"x","y","z"};
+	const bool lengthFlag[lengthCount]={m_xLengthFlag,m_yLengthFlag,m_zLengthFlag};
+	switch(m_twoPointCalKind){
+	case(TwoPointCalKind::LENGTH):
+		lengthColor=GetColor(255,255,0);
+		break;
+	case(TwoPointCalKind::TAN):
+		tanColor=GetColor(255,255,0);
+		break;
+	}
+	//左の項目欄
+	DrawBox((lengthBoxPos+m_position).x,(lengthBoxPos+m_position).y,(lengthBoxPos+m_position+twoPointBoxSize).x,(lengthBoxPos+m_position+twoPointBoxSize).y,lengthColor,FALSE);
+	DrawStringCenterBaseToHandle((lengthBoxPos+m_position+twoPointBoxSize/2).x,(lengthBoxPos+m_position+twoPointBoxSize/2).y,"length",lengthColor,m_font,true);
+	DrawBox((tanBoxPos+m_position).x,(tanBoxPos+m_position).y,(tanBoxPos+m_position+twoPointBoxSize).x,(tanBoxPos+m_position+twoPointBoxSize).y,tanColor,FALSE);
+	DrawStringCenterBaseToHandle((tanBoxPos+m_position+twoPointBoxSize/2).x,(tanBoxPos+m_position+twoPointBoxSize/2).y,"tan",tanColor,m_font,true);
+	//距離インターフェースの描画
+	for(int i=0;i<lengthCount;i++){
+		unsigned int inColor=lengthFlag[i] ? lengthColor : twoBoxBackColor;
+		const Vector2D v1=lengthBoxPos+m_position+Vector2D(twoPointBoxSize.x*(i+1),0),v2=v1+twoPointBoxSize,v3=(v1+v2)/2;
+		DrawBox(v1.x,v1.y,v2.x,v2.y,inColor,TRUE);//内側
+		DrawBox(v1.x,v1.y,v2.x,v2.y,lengthColor,FALSE);//外側
+		DrawStringCenterBaseToHandle(v3.x,v3.y,lengthStr[i],GetInvertedColor(inColor),m_font,true);//文字
+	}
+	//tanインターフェースの描画
+	for(int i=0;i<TanCalKind::END;i++){
+		unsigned int inColor=i==(m_tanCalKind) ? tanColor : twoBoxBackColor;
+		const Vector2D v1=tanBoxPos+m_position+Vector2D(twoPointBoxSize.x*(i+1),0),v2=v1+twoPointBoxSize,v3=(v1+v2)/2;
+		DrawBox(v1.x,v1.y,v2.x,v2.y,inColor,TRUE);//内側
+		DrawBox(v1.x,v1.y,v2.x,v2.y,tanColor,FALSE);//外側
+		DrawStringCenterBaseToHandle(v3.x,v3.y,TanCalKind::str[i].c_str(),GetInvertedColor(inColor),m_font,true);//文字
+	}
 }
 
 double GraphDataBuilder::CalData(const std::vector<IBodyKinectSensor::JointPosition> &playData)const{
