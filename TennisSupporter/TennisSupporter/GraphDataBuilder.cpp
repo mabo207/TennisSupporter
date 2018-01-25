@@ -187,27 +187,15 @@ std::string GraphDataBuilder::SlopeDataFactory::ElementToStr(ElementType ele)con
 
 double GraphDataBuilder::SlopeDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
 	double divided=CalculateDiff(dividedEle,data),divide=CalculateDiff(divideEle,data);
-	if(divide!=0.0){
-		//0œŽZ‚Å‚È‚¢Žž
-		return divided/divide;
-	} else{
-		//0œŽZ‚ÍdataMax,0.0,dataMin‚ð•Ô‚·
-		if(divided>0.0){
-			return DataMax();
-		} else if(divided==0.0){
-			return 0.0;
-		} else{
-			return DataMin();
-		}
-	}
+	return std::atan2(divided,divide)/M_PI*180.0;
 }
 
 double GraphDataBuilder::SlopeDataFactory::DataMax()const{
-	return 100.0;
+	return 180.0;
 }
 
 double GraphDataBuilder::SlopeDataFactory::DataMin()const{
-	return -100.0;
+	return -180.0;
 }
 
 void GraphDataBuilder::SlopeDataFactory::Draw(Vector2D pos)const{
