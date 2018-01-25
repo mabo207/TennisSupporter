@@ -69,12 +69,13 @@ class GraphDataBuilder{
 		std::vector<JointType> IGetInput()const;
 		std::string IGetFactoryType()const;
 	};
-	//に対して用いるクラス
+	//傾きに対して用いるクラス
 	struct SlopeDataFactory:public IDataFactory{
 		enum ElementType{
 			elX,
 			elY,
-			elZ
+			elZ,
+			elXZLength
 		};
 		//定数
 		static const size_t indexNum=2;
@@ -100,7 +101,8 @@ class GraphDataBuilder{
 	//インターフェースで用いる列挙体
 	struct TanCalKind{
 		enum Kind{
-			ZDIVX,//z/x
+			ZDIVX,// z/x
+			YDIVXZLEN,// y/√x^2+z^2:xz平面とベクトルの交わる角度
 			END
 		};
 		static const std::string str[END];

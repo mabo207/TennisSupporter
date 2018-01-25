@@ -165,6 +165,9 @@ double GraphDataBuilder::SlopeDataFactory::CalculateDiff(ElementType ele,const s
 	case(elZ):
 		return (double)(data[type[1]].Z-data[type[0]].Z);
 		break;
+	case(elXZLength):
+		return std::sqrt((double)std::pow(data[type[1]].X-data[type[0]].X,2.0)+(double)std::pow(data[type[1]].Z-data[type[0]].Z,2.0));
+		break;
 	}
 	return 0.0;
 }
@@ -179,6 +182,9 @@ std::string GraphDataBuilder::SlopeDataFactory::ElementToStr(ElementType ele)con
 		break;
 	case(elZ):
 		return "z";
+		break;
+	case(elXZLength):
+		return "xzlen";
 		break;
 	}
 	return "";
@@ -271,7 +277,7 @@ const Vector2D GraphDataBuilder::tanBoxPos=lengthBoxPos+Vector2D(0,twoPointBoxSi
 const int GraphDataBuilder::circleSize=10;
 const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
-const std::string GraphDataBuilder::TanCalKind::str[END]={"z/x"};
+const std::string GraphDataBuilder::TanCalKind::str[END]={"z/x","y/(√x^2+z^2)"};
 const std::string GraphDataBuilder::TwoPointCalKind::str[END]={"length","tan"};
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
@@ -315,6 +321,9 @@ void GraphDataBuilder::CreateFactory(const std::vector<JointType> &input){
 			switch(m_tanCalKind){
 			case(TanCalKind::ZDIVX):
 				m_dataFactory=std::shared_ptr<IDataFactory>(new SlopeDataFactory(input[0],input[1],SlopeDataFactory::elZ,SlopeDataFactory::elX));
+				break;
+			case(TanCalKind::YDIVXZLEN):
+				m_dataFactory=std::shared_ptr<IDataFactory>(new SlopeDataFactory(input[0],input[1],SlopeDataFactory::elY,SlopeDataFactory::elXZLength));
 				break;
 			}
 			break;
@@ -406,6 +415,9 @@ int GraphDataBuilder::Update(){
 				switch(lc){
 				case(1):
 					m_tanCalKind=TanCalKind::ZDIVX;
+					break;
+				case(2):
+					m_tanCalKind=TanCalKind::YDIVXZLEN;
 					break;
 				}
 				//グラフの更新が確定するのでフラグを立てる
