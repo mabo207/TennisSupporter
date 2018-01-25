@@ -96,13 +96,46 @@ class GraphDataBuilder{
 		std::vector<JointType> IGetInput()const;
 		std::string IGetFactoryType()const;
 	};
+	//両足首y平面に対する入射角に用いるクラス
+	struct BalanceDataFactory:public IDataFactory{
+		//定数
+		static const size_t indexNum=2;
+		//変数
+		const JointType type[indexNum];
+		//関数
+		BalanceDataFactory(JointType point1,JointType point2);
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
+		double DataMax()const;
+		double DataMin()const;
+		void Draw(Vector2D pos)const;
+		std::vector<JointType> IGetInput()const;
+		std::string IGetFactoryType()const;
 
+	};
+	//サービス位置からサービスエリア中央とy軸によって構成される平面に対する入射角に用いるクラス
+	struct BallDirectionDataFactory:public IDataFactory{
+		//定数
+		static const size_t indexNum=2;
+		//変数
+		const JointType type[indexNum];
+		//関数
+		BallDirectionDataFactory(JointType point1,JointType point2);
+		double ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const;
+		double DataMax()const;
+		double DataMin()const;
+		void Draw(Vector2D pos)const;
+		std::vector<JointType> IGetInput()const;
+		std::string IGetFactoryType()const;
+
+	};
 
 	//インターフェースで用いる列挙体
 	struct TanCalKind{
 		enum Kind{
 			ZDIVX,// z/x
 			YDIVXZLEN,// y/√x^2+z^2:xz平面とベクトルの交わる角度
+			BALANCE,// 両足首y平面に対する入射角
+			DIRECTION,// サービスエリア方向y平面に対する入射角
 			END
 		};
 		static const std::string str[END];

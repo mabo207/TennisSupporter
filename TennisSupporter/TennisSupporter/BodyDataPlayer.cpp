@@ -6,7 +6,7 @@
 #include"input.h"
 
 //-----------------BodyDataPlayer-----------------
-const Vector2D BodyDataPlayer::graphPos=Vector2D(100,60);
+const Vector2D BodyDataPlayer::graphPos=Vector2D(100,80);
 const Vector2D BodyDataPlayer::graphSize=Vector2D(BodyDataPlayer::writeCountMax,360);
 const std::string BodyDataPlayer::sectionStr="##################";
 

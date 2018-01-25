@@ -235,6 +235,116 @@ std::string GraphDataBuilder::SlopeDataFactory::IGetFactoryType()const{
 	return str;
 }
 
+//---------------GraphDataBuilder::BalanceDataFactory---------------
+GraphDataBuilder::BalanceDataFactory::BalanceDataFactory(JointType point1,JointType point2)
+	:type{point1,point2}{}
+
+double GraphDataBuilder::BalanceDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
+	//現在の両足首y平面の方程式ax+cz=0を求める
+	double a=-(data[JointType_AnkleLeft].Z-data[JointType_AnkleRight].Z);
+	double c=data[JointType_AnkleLeft].X-data[JointType_AnkleRight].X;
+	//入射角を求めたいベクトルを計算
+	const double dx=(double)(data[type[1]].X-data[type[0]].X);
+	const double dy=(double)(data[type[1]].Y-data[type[0]].Y);
+	const double dz=(double)(data[type[1]].Z-data[type[0]].Z);
+	//asin値を求める。ax+czが正となる方向(すなわち、x軸からPI/2ラジアン回ったところ。(x,z)で(1,0)→(0,1)と回る方向に回る)に法線が伸びる
+	return std::asin((a*dx+c*dz)/std::sqrt((a*a+c*c)*(dx*dx+dy*dy+dz*dz)))/M_PI*180.0;
+}
+
+double GraphDataBuilder::BalanceDataFactory::DataMax()const{
+	return 90.0;
+}
+
+double GraphDataBuilder::BalanceDataFactory::DataMin()const{
+	return -90.0;
+}
+
+void GraphDataBuilder::BalanceDataFactory::Draw(Vector2D pos)const{
+	Vector2D v[indexNum];
+	//塗りつぶし
+	for(size_t i=0;i<indexNum;i++){
+		v[i]=relativeInputPos.find(type[i])->second+pos;
+		DrawCircle(v[i].x,v[i].y,circleSize,GetColor(0,128,255));
+	}
+	//線を引く
+	for(size_t i=0;i<indexNum-1;i++){
+		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),3);
+	}
+
+}
+
+std::vector<JointType> GraphDataBuilder::BalanceDataFactory::IGetInput()const{
+	std::vector<JointType> v;
+	v.reserve(indexNum);
+	for(const JointType &j:type){
+		v.push_back(j);
+	}
+	return v;
+}
+
+std::string GraphDataBuilder::BalanceDataFactory::IGetFactoryType()const{
+	std::string str="balance";
+	for(const JointType &t:type){
+		str+=("_"+IBodyKinectSensor::jointName.find(t)->second);
+	}
+	return str;
+}
+
+//---------------GraphDataBuilder::BallDirectionDataFactory---------------
+GraphDataBuilder::BallDirectionDataFactory::BallDirectionDataFactory(JointType point1,JointType point2)
+	:type{point1,point2}{}
+
+double GraphDataBuilder::BallDirectionDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
+	//サービスエリアに向かったy平面の方程式ax+cz=0を求める
+	double a=-(5.715/2);//方向ベクトルのz成分を()内に入れる
+	double c=(-15.09);//方向ベクトルのx成分を()内に入れる
+	//入射角を求めたいベクトルを計算
+	const double dx=(double)(data[type[1]].X-data[type[0]].X);
+	const double dy=(double)(data[type[1]].Y-data[type[0]].Y);
+	const double dz=(double)(data[type[1]].Z-data[type[0]].Z);
+	//asin値を求める。ax+czが正となる方向(すなわち、x軸からPI/2ラジアン回ったところ。(x,z)で(1,0)→(0,1)と回る方向に回る)に法線が伸びる
+	return std::asin((a*dx+c*dz)/std::sqrt((a*a+c*c)*(dx*dx+dy*dy+dz*dz)))/M_PI*180.0;
+}
+
+double GraphDataBuilder::BallDirectionDataFactory::DataMax()const{
+	return 90.0;
+}
+
+double GraphDataBuilder::BallDirectionDataFactory::DataMin()const{
+	return -90.0;
+}
+
+void GraphDataBuilder::BallDirectionDataFactory::Draw(Vector2D pos)const{
+	Vector2D v[indexNum];
+	//塗りつぶし
+	for(size_t i=0;i<indexNum;i++){
+		v[i]=relativeInputPos.find(type[i])->second+pos;
+		DrawCircle(v[i].x,v[i].y,circleSize,GetColor(0,128,255));
+	}
+	//線を引く
+	for(size_t i=0;i<indexNum-1;i++){
+		DrawLine(v[i].x,v[i].y,v[i+1].x,v[i+1].y,GetColor(0,128,255),3);
+	}
+
+}
+
+std::vector<JointType> GraphDataBuilder::BallDirectionDataFactory::IGetInput()const{
+	std::vector<JointType> v;
+	v.reserve(indexNum);
+	for(const JointType &j:type){
+		v.push_back(j);
+	}
+	return v;
+}
+
+std::string GraphDataBuilder::BallDirectionDataFactory::IGetFactoryType()const{
+	std::string str="direction";
+	for(const JointType &t:type){
+		str+=("_"+IBodyKinectSensor::jointName.find(t)->second);
+	}
+	return str;
+}
+
 //---------------GraphDataBuilder---------------
 const std::map<JointType,Vector2D> GraphDataBuilder::relativeInputPos={
 	std::pair<JointType,Vector2D>(JointType_SpineBase,Vector2D(105,200))
@@ -277,7 +387,7 @@ const Vector2D GraphDataBuilder::tanBoxPos=lengthBoxPos+Vector2D(0,twoPointBoxSi
 const int GraphDataBuilder::circleSize=10;
 const int GraphDataBuilder::squareSize=GraphDataBuilder::circleSize*2;
 
-const std::string GraphDataBuilder::TanCalKind::str[END]={"z/x","y/(√x^2+z^2)"};
+const std::string GraphDataBuilder::TanCalKind::str[END]={"z/x","y/(√x^2+z^2)","balance","direction"};
 const std::string GraphDataBuilder::TwoPointCalKind::str[END]={"length","tan"};
 
 GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
@@ -324,6 +434,12 @@ void GraphDataBuilder::CreateFactory(const std::vector<JointType> &input){
 				break;
 			case(TanCalKind::YDIVXZLEN):
 				m_dataFactory=std::shared_ptr<IDataFactory>(new SlopeDataFactory(input[0],input[1],SlopeDataFactory::elY,SlopeDataFactory::elXZLength));
+				break;
+			case(TanCalKind::BALANCE):
+				m_dataFactory=std::shared_ptr<IDataFactory>(new BalanceDataFactory(input[0],input[1]));
+				break;
+			case(TanCalKind::DIRECTION):
+				m_dataFactory=std::shared_ptr<IDataFactory>(new BallDirectionDataFactory(input[0],input[1]));
 				break;
 			}
 			break;
@@ -408,7 +524,7 @@ int GraphDataBuilder::Update(){
 			//tan計算インターフェース
 			Vector2D tv=mousepos-(m_position+tanBoxPos);//tan vector
 			int tc=tv.x/twoPointBoxSize.x;//tan count
-			if(tv.y>=0 && tv.y<=twoPointBoxSize.y && tc>=0 && tc<4){
+			if(tv.y>=0 && tv.y<=twoPointBoxSize.y && tc>=0 && tc<TanCalKind::END+1){
 				//四角内にあれば計算方法の切り替え
 				m_twoPointCalKind=TwoPointCalKind::TAN;
 				//計算対象のONOFF切り替え
@@ -418,6 +534,12 @@ int GraphDataBuilder::Update(){
 					break;
 				case(2):
 					m_tanCalKind=TanCalKind::YDIVXZLEN;
+					break;
+				case(3):
+					m_tanCalKind=TanCalKind::BALANCE;
+					break;
+				case(4):
+					m_tanCalKind=TanCalKind::DIRECTION;
 					break;
 				}
 				//グラフの更新が確定するのでフラグを立てる
