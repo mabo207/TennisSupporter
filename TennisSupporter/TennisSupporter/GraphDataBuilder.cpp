@@ -11,8 +11,8 @@ GraphDataBuilder::PosDataFactory::PosDataFactory(JointType i_type,double i_nVecX
 
 double GraphDataBuilder::PosDataFactory::ICalData(const std::vector<IBodyKinectSensor::JointPosition> &data)const{
 	//return data[type].Y;
-	//法線ベクトルが(a,b,c)の平面の原点を通る平面の方程式はax+by+cz=0。点(X,Y,Z)と平面の距離は|aX+bY+cZ|/√a^2+b^2+c^2で求められる。
-	return std::abs(nVecX*data[type].X+nVecY*data[type].Y+nVecZ*data[type].Z)/std::sqrt(std::pow(nVecX,2)+std::pow(nVecY,2)+std::pow(nVecZ,2));
+	//法線ベクトルが(a,b,c)の平面の原点を通る平面の方程式はax+by+cz=0。点(X,Y,Z)と平面の距離は|aX+bY+cZ|/√a^2+b^2+c^2で求められる。向きを考慮するなら絶対値を取るだけで良い。
+	return nVecX*data[type].X+nVecY*data[type].Y+nVecZ*data[type].Z/std::sqrt(std::pow(nVecX,2)+std::pow(nVecY,2)+std::pow(nVecZ,2));
 }
 
 double GraphDataBuilder::PosDataFactory::DataMax()const{
@@ -291,7 +291,7 @@ GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
 	m_twoPointCalKind(TwoPointCalKind::LENGTH),m_xLengthFlag(true),m_yLengthFlag(false),m_zLengthFlag(true),m_tanCalKind(TanCalKind::ZDIVX)
 {
 	//m_dataFactoryの初期化
-	CreateFactory(std::vector<JointType>{JointType_SpineBase});
+	CreateFactory(std::vector<JointType>{JointType_WristRight});
 }
 
 GraphDataBuilder::~GraphDataBuilder(){}
