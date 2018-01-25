@@ -252,8 +252,18 @@ int BodyDataPlayer::Update(){
 		//速くする
 		m_playRate=m_playRate+0.05;
 	}
-	printfDx("playRate:\n%f",m_playRate);
+	printfDx("playRate:\n%f\n",m_playRate);
 
+	//デバッグ機能：グラフの最大点に再生時間を合わせる
+	printfDx("playIndex:%d\n",CalReadIndex()+1);//excelの計算に合わせる
+	if(keyboard_get(KEY_INPUT_O)==1){
+		for(size_t i=0;i<m_graphSingleData.m_data.size();i++){
+			if(m_graphSingleData.m_data[i]==m_graphSingleData.m_dataMax){
+				m_playFrame=CalPlayFrame(i);
+				UpdateImage();
+			}
+		}
+	}
 
 	//場面遷移
 	if(keyboard_get(KEY_INPUT_BACK)==1){
