@@ -237,11 +237,20 @@ void DataAnalyzer::InputToOutputFolder()const{
 		"G-suburi",
 		"G-serve"
 	};
+	const std::string backStr="_"+m_pGraphDataBuilder->GetFactoryType()+".csv";
+	//ファイル名一覧を書き出す所
+	std::ofstream ofs((outDir+"namelist"+backStr).c_str(),std::ios_base::trunc);
 	//書き出し
+	int index=0;
 	for(const std::string &fname:fName){
 		DataAnalyzer d(-1,(inpDir+fname+".txt").c_str(),m_pGraphDataBuilder);
-		d.OutputGraphData((outDir+fname+"_"+m_pGraphDataBuilder->GetFactoryType()+".csv").c_str());
+		d.OutputGraphData((outDir+fname+backStr).c_str());
+		if(ofs.is_open()){
+			ofs<<"filenameVec("<<index<<")=\""<<(fname+backStr)<<"\""<<std::endl;
+		}
+		index++;
 	}
+	ofs.close();
 }
 
 int DataAnalyzer::Update(){
