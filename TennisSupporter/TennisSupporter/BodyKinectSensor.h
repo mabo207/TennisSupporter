@@ -1,56 +1,29 @@
 #ifndef DEF_BODYKINECTSENSOR_H
 #define DEF_BODYKINECTSENSOR_H
 
-#include<vector>
-#include<Kinect.h>
-#include<fstream>
+#include"IBodyKinectSensor.h"
 #include<iostream>
-#include"KinectTools.h"
 
 //body要素を読み取るkinectセンサーを管理する
-class BodyKinectSensor{
+class BodyKinectSensor:public IBodyKinectSensor{
 	//型・列挙体
-	struct JointPosition{
-		static const float defaultfloat;
-		float X;
-		float Y;
-		float Z;
-		//X,Y,Zの値を直接入力する
-		JointPosition(float i_X=defaultfloat,float i_Y=defaultfloat,float i_Z=defaultfloat);
-		//_CameraSpacePointより初期化する
-		JointPosition(_CameraSpacePoint pos);
-		//"(X,Y,Z)"という形式の文字列を読み取って初期化する
-		JointPosition(const std::string &str);
-		//"(X,Y,Z)"という文字列を出力する
-		std::string GetString()const;
-		//_CameraSpacePointを作成
-		_CameraSpacePoint GetCameraSpacePoint()const;
-		//Joint::PositionがJointPositionのようになっているJointを返す。その他の要素はテキトー。
-		Joint CreateJoint()const;
-		Joint CreateJoint(_JointType type)const;
-		Joint CreateJoint(_TrackingState state)const;
-		Joint CreateJoint(_JointType type,_TrackingState state)const;
-	};
+public:
 	
 	//定数
-protected:
-	static const std::vector<std::pair<_JointType,_JointType>> bonePairs;
-	static const size_t bodyNum=6;
+public:
 
 	//変数
 protected:
-	JointPosition m_jointPositions[bodyNum][JointType_Count];
 	IBodyFrameReader *m_pBodyReader;
 
 	//関数
+protected:
+
 public:
 	BodyKinectSensor(IKinectSensor *pSensor);
 	~BodyKinectSensor();
-	void OutputJointPoitions(std::ofstream &writeFile)const;//writeFileに現在のjointPositionsを1行で出力する
 	int Update();//kinectから情報を取得し更新する
 	int Update(std::ifstream &readFile);//テキストデータから情報を１行分取得し更新する
-	void Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D depthSize,Vector2D xyPos,Vector2D xySize,Vector2D zyPos,Vector2D zySize)const;
-
 };
 
 #endif // !DEF_BODYKINECTSENSOR_H

@@ -86,6 +86,12 @@ int DrawStringRightJustifiedToHandle(int x,int y,const std::string &str,int colo
 //int→string変換の際に、0詰めを行うようにする
 std::string to_string_0d(int pal,unsigned int length);
 
+//ファイルが存在するかどうかを調べる。実行ファイルの存在するディレクトリ上に存在するかを調べる。
+bool JudgeFileExist(const std::string &str);
+
+//反転色のカラーコードを取得する
+unsigned int GetInvertedColor(unsigned int color);
+
 //数値の変化を様々な式で管理するクラス
 class Easing{
 	//列挙体

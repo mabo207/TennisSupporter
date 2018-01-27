@@ -677,16 +677,17 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
 		const Vector2D KinectSize(512,424);
 		//dxライブラリの初期化
 		//画面モードの設定(一応こんな感じ)
-		SetGraphMode(KinectSize.x*2,KinectSize.y*2,16);
+		SetGraphMode(KinectSize.x*2+500,KinectSize.y*2,16);
 		//タイトルメニュー文字
 		SetMainWindowText("TennisSupporter");
 		//ウインドウサイズの変更
 		SetWindowSizeExtendRate(0.5);
 		//ウインドウサイズの変更をできるようにする
-		SetWindowSizeChangeEnableFlag(FALSE);
+		SetWindowSizeChangeEnableFlag(TRUE);
 		//アイコンの設定
 		SetWindowIconID(101);
-
+		//非アクティブ状態での処理の続行のフラグ
+		SetAlwaysRunFlag(FALSE);
 
 		if(ChangeWindowMode(TRUE) != 0) {
 			throw(std::runtime_error("ChangeWindowMode(TRUE) failed."));

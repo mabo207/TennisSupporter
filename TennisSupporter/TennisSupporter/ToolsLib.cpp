@@ -1,6 +1,8 @@
 #include<vector>
 #include"ToolsLib.h"
 #include"DxLib.h"
+#include<fstream>
+#include<iostream>
 
 #define INTMAXINDEX 12//int型の最大桁数+2('-'と'\0'のための+2)(int型の文字数)
 
@@ -217,6 +219,22 @@ std::string to_string_0d(int pal,unsigned int length){
 		str="0"+str;
 	}
 	return str;
+}
+
+//ファイルが存在するかどうかを調べる。実行ファイルの存在するディレクトリ上に存在するかを調べる。
+bool JudgeFileExist(const std::string &str){
+	//「ファイルが開ける」→「ファイルが存在する」という考え方。セキュリティ面の問題がある。
+	std::ifstream ifs(str);
+	bool flag=ifs.is_open();
+	ifs.close();
+	return flag;
+}
+
+//反転色のカラーコードを取得する
+unsigned int GetInvertedColor(unsigned int color){
+	int r,g,b;
+	GetColor2(color,&r,&g,&b);
+	return GetColor(255-r,255-g,255-b);
 }
 
 //数値変化を様々な式で管理するクラス
