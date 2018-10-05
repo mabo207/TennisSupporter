@@ -350,7 +350,7 @@ void BodyDataPlayer::Draw()const{
 	//読み込みデータインターフェースの描画
 	m_pGraphDataBuilder->Draw();
 	//操作説明の描画(横幅等はテキトー、どうせはみださない)
-	DrawStringNewLineToHandle((zyPos+kinectSize/2).x,zyPos.y,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
+	DrawStringNewLineToHandle(1350,50,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
 		"L click (on graph) : set playtime\n"
 		"L click (on body) : set kind of graph\n"
 		"R click : make section\n"

@@ -39,6 +39,8 @@ std::string BodyPhotographer::SearchFileName()const{
 		std::string name="SaveData/"+to_string_0d(i,4)+".txt";
 		if(!JudgeFileExist(name)){
 			//ファイルが存在していなければ次はそこに書き込むものとする。
+			//デモ用に全て0000に書き込む
+			name="SaveData/0000.txt";
 			return name;
 		}
 	}
@@ -65,7 +67,8 @@ int BodyPhotographer::Update(){
 				m_writeFile.open(m_writeFileName,std::ios_base::trunc);
 			} else{
 				//既存のファイルの上書きが起こった場合は、出力ファイル名を変える作業のみ行う
-				m_writeFileName=SearchFileName();
+				//m_writeFileName=SearchFileName();
+				m_writeFile.open(m_writeFileName,std::ios_base::trunc);//デモなので上書きを許す
 			}
 			if(!m_writeFile){
 				//ファイルを開けなければ記録開始しない
@@ -98,7 +101,14 @@ int BodyPhotographer::Update(){
 	} else if(keyboard_get(KEY_INPUT_2)==1){
 		//分析モードへ
 		return 2;
+	} else if(keyboard_get(KEY_INPUT_3)==1){
+		//上級者再生モードへ
+		return 3;
+	} else if(keyboard_get(KEY_INPUT_4)==1){
+		//上級者分析モードへ
+		return 4;
 	}
+
 	return 0;
 }
 
@@ -113,10 +123,20 @@ void BodyPhotographer::Draw()const{
 	//出力先ファイル名を出力
 	DrawStringToHandle(zyPos.x,depthPos.y,("out filename: "+m_writeFileName).c_str(),GetColor(255,255,255),m_bigFont);
 	//操作説明の描画(横幅等はテキトー、どうせはみださない)
-	int po=DrawStringNewLineToHandle((zyPos+kinectSize/2).x,zyPos.y,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
+	int po=DrawStringNewLineToHandle(1350,50,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
 		"Enter : begin photograph\n"
 		"1 : play \"0000.txt\"\n"
 		"2 : analyze \"0000_section.txt\"\n"
+		"3 : play expert data\n"
+		"4 : analyze expert data\n"
 	);
-	int popo=po;
+	//録画しているか分かるように
+	if(m_fileWriteFlag){
+		int dx,dy;
+		GetWindowSize(&dx,&dy);
+		DrawLine(0,0,0,dy,GetColor(255,0,0),10);
+		DrawLine(0,dy,dx,dy,GetColor(255,0,0),10);
+		DrawLine(dx,dy,dx,0,GetColor(255,0,0),10);
+		DrawLine(dx,0,0,0,GetColor(255,0,0),10);
+	}
 }

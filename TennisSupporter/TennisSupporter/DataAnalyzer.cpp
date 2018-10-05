@@ -378,7 +378,8 @@ void DataAnalyzer::Draw()const{
 	//折れ線の描画
 	for(size_t j=0,size=m_graphData.size();j<size;j++){
 		//グラフの色の設定
-		//unsigned int color=GetColor(64*(j%4)+63,64*((j*3%16)/4)+63,64*((j*5%64)/16)+63);
+		unsigned int color=GetColor(64*(j%4)+63,64*((j*3%16)/4)+63,64*((j*5%64)/16)+63);
+/*
 		unsigned int color;
 		if(j<10){
 			color=GetColor(255,0,0);
@@ -387,6 +388,7 @@ void DataAnalyzer::Draw()const{
 		} else if(j<30){
 			color=GetColor(0,0,255);
 		}
+//*/
 		//色一覧に描画
 		DrawBox(graphPos.x+graphSize.x+20,330+j*20,graphPos.x+graphSize.x+20+60,330+j*20+10,color,TRUE);
 		//1フレームに対するピクセル数の計算
@@ -414,7 +416,7 @@ void DataAnalyzer::Draw()const{
 	//読み込みデータインターフェースの描画
 	m_pGraphDataBuilder->Draw();
 	//操作説明の描画(横幅等はテキトー、どうせはみださない)
-	DrawStringNewLineToHandle(zyPos.x,zyPos.y,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
+	DrawStringNewLineToHandle(1350,50,0,0,10000,10000,GetColor(255,255,255),m_font,GetFontSizeToHandle(m_font),
 		"L click (on body) : set kind of graph\n"
 		"U : convert height mode ( unity / normal )\n"
 		"I : convert width mode ( unity / normal )\n"

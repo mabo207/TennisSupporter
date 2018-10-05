@@ -49,6 +49,18 @@ int BodySimulator::Update(){
 				new DataAnalyzer(
 					m_font
 					,("SaveData/"+to_string_0d(0,4)+"_section.txt").c_str()));
+		} else if(index==3){
+			//場面を上級者再生モードに変更
+			m_pScene=std::shared_ptr<IBodySimulateScene>(
+				new BodyDataPlayer(
+					m_font
+					,"SaveData/expert.txt"));
+		} else if(index==4){
+			//場面を上級者分析モードに変更
+			m_pScene=std::shared_ptr<IBodySimulateScene>(
+				new DataAnalyzer(
+					m_font
+					,"SaveData/expert_section.txt"));
 		}
 		break;
 	case(IBodySimulateScene::MODE::PLAYER):
