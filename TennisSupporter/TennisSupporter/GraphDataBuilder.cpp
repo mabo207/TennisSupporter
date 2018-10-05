@@ -395,7 +395,7 @@ GraphDataBuilder::GraphDataBuilder(Vector2D position,int font)
 	m_twoPointCalKind(TwoPointCalKind::LENGTH),m_xLengthFlag(true),m_yLengthFlag(false),m_zLengthFlag(true),m_tanCalKind(TanCalKind::ZDIVX)
 {
 	//m_dataFactory‚Ì‰Šú‰»
-	CreateFactory(std::vector<JointType>{JointType_WristRight});
+	CreateFactory(std::vector<JointType>{JointType_WristLeft});
 }
 
 GraphDataBuilder::~GraphDataBuilder(){}

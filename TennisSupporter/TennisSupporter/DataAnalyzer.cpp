@@ -222,20 +222,20 @@ void DataAnalyzer::InputToOutputFolder()const{
 	//読み取り元、書き出し先フォルダ名生成規則
 	const std::string inpDir="Input/",outDir="Output/";
 	const std::string fName[]={
-		"A-suburi",
-		"A-serve",
-		"B-suburi",
-		"B-serve",
-		"C-suburi",
-		"C-serve",
-		"D-suburi",
-		"D-serve",
-		"E-suburi",
-		"E-serve",
-		"F-suburi",
-		"F-serve",
-		"G-suburi",
-		"G-serve"
+//		"A-suburi",
+		"A-serve"
+//		"B-suburi",
+//		"B-serve",
+//		"C-suburi",
+//		"C-serve",
+//		"D-suburi",
+//		"D-serve",
+//		"E-suburi",
+//		"E-serve",
+//		"F-suburi",
+//		"F-serve",
+//		"G-suburi",
+//		"G-serve"
 	};
 	const std::string backStr="_"+m_pGraphDataBuilder->GetFactoryType()+".csv";
 	//ファイル名一覧を書き出す所
@@ -378,7 +378,15 @@ void DataAnalyzer::Draw()const{
 	//折れ線の描画
 	for(size_t j=0,size=m_graphData.size();j<size;j++){
 		//グラフの色の設定
-		unsigned int color=GetColor(64*(j%4)+63,64*((j*3%16)/4)+63,64*((j*5%64)/16)+63);
+		//unsigned int color=GetColor(64*(j%4)+63,64*((j*3%16)/4)+63,64*((j*5%64)/16)+63);
+		unsigned int color;
+		if(j<10){
+			color=GetColor(255,0,0);
+		} else if(j<20){
+			color=GetColor(0,255,0);
+		} else if(j<30){
+			color=GetColor(0,0,255);
+		}
 		//色一覧に描画
 		DrawBox(graphPos.x+graphSize.x+20,330+j*20,graphPos.x+graphSize.x+20+60,330+j*20+10,color,TRUE);
 		//1フレームに対するピクセル数の計算

@@ -316,6 +316,10 @@ void IBodyKinectSensor::Draw(IKinectSensor *pSensor,Vector2D depthPos,Vector2D d
 			DrawLine(posZY[0].x,posZY[0].y,posZY[1].x,posZY[1].y,GetColor(255,0,0),1);
 		}
 	}
+
+	//デバッグ用
+	//DrawCircle(400,300,10,GetColor(255,128,0),TRUE);
+	//DrawCircle(400-(m_jointPositions[0][JointType_HipRight].X-m_jointPositions[0][JointType_HipLeft].X)*100,300-(m_jointPositions[0][JointType_HipRight].Z-m_jointPositions[0][JointType_HipLeft].Z)*100,10,GetColor(0,0,255),TRUE);
 }
 
 IBodyKinectSensor::JointPosition IBodyKinectSensor::GetJointPosition(_JointType jointType)const{
